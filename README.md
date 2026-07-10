@@ -1,112 +1,288 @@
-# 🚖 Uber Clone - Full Stack Ride-Hailing Application
+# 🚖 Uber Clone
 
-![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
-![Node.js](https://img.shields.io/badge/Node.js-43853D?style=for-the-badge&logo=node.js&logoColor=white)
-![Express.js](https://img.shields.io/badge/Express.js-404D59?style=for-the-badge)
-![MongoDB](https://img.shields.io/badge/MongoDB-4EA94B?style=for-the-badge&logo=mongodb&logoColor=white)
-![Socket.io](https://img.shields.io/badge/Socket.io-black?style=for-the-badge&logo=socket.io&badgeColor=010101)
-![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)
+## Production-Inspired Ride Hailing Platform
 
-A high-performance, real-time ride-hailing web application built from the ground up using the MERN stack and WebSockets. This project replicates the core functionalities of Uber, providing seamless location tracking, dynamic fare calculation, and instant ride requests.
+> A full-stack ride-hailing application built with the **MERN Stack**, inspired by the architecture of modern ride-sharing platforms. This project focuses on backend engineering, scalable architecture, secure authentication, ride lifecycle management, and clean software engineering practices rather than simply recreating Uber's user interface.
 
 ---
 
-## ✨ Key Features
+# 📖 About the Project
 
-- **🔐 Secure Authentication:** JWT-based robust authentication and authorization for both Riders and Drivers. Password encryption using bcrypt.
-- **🗺️ Interactive Maps & Routing:** Integration with the **OpenRouteService API** for real-time location autocomplete, coordinate decoding, and accurate route plotting.
-- **💰 Dynamic Fare Calculation:** Mathematical models on the backend calculate precise fares based on distance and estimated travel time.
-- **📡 Real-Time Live Tracking:** Bi-directional real-time communication using **Socket.io**. Drivers broadcast their exact GPS coordinates, and riders see cars moving on the map instantly.
-- **🎨 Premium UI/UX:** Responsive, modern, and beautiful user interfaces crafted with **Tailwind CSS**.
+This project aims to understand how production ride-hailing platforms are engineered.
 
----
+Instead of focusing only on frontend design, the emphasis is on building a modular backend that follows industry-standard architecture and software engineering principles.
 
-## 🛠️ Technology Stack
+The application currently supports secure authentication for riders and captains, ride creation, dynamic fare calculation, OTP generation, protected APIs, and a service-layer architecture.
 
-### **Frontend (Rider & Driver Apps)**
-- **React.js** (Vite)
-- **Tailwind CSS** (for rapid, beautiful styling)
-- **React Router** (for SPA navigation)
-- **React Context API** (for global state management)
-- **Axios** (for API communication)
-- **Socket.io-client** (for real-time events)
-
-### **Backend (API & WebSockets)**
-- **Node.js & Express.js**
-- **MongoDB & Mongoose** (for scalable database management)
-- **JSON Web Tokens (JWT)** (for stateless auth)
-- **Socket.io** (for live geolocation streaming)
-- **OpenRouteService API** (for geospatial calculations)
+As development continues, the project will evolve with caching, distributed messaging, and deployment technologies including **Redis**, **Apache Kafka**, and **Docker**.
 
 ---
 
-## 🚀 Installation & Setup
+# 🎯 Project Objectives
 
-Want to run this project locally? Follow these steps:
-
-### 1. Clone the Repository
-```bash
-git clone https://github.com/indramohankumar/UBER-CLONE.git
-cd UBER-CLONE
-```
-
-### 2. Setup the Backend
-Open a terminal and navigate to the backend directory:
-```bash
-cd backend
-npm install
-```
-
-Create a `.env` file in the `backend` directory and add your secret keys:
-```env
-PORT=8000
-MONGODB_URI=your_mongodb_connection_string
-JWT_SECRET=your_super_secret_key
-ORS_API_KEY=your_open_route_service_api_key
-```
-
-Start the backend server:
-```bash
-npm start
-```
-
-### 3. Setup the Frontend (Rider App)
-Open a second terminal and navigate to the frontend directory:
-```bash
-cd frontend/rider
-npm install
-```
-Start the Vite development server:
-```bash
-npm run dev
-```
+- Build scalable REST APIs
+- Implement secure authentication
+- Follow modular backend architecture
+- Learn production software engineering practices
+- Simulate real ride-booking workflow
+- Explore distributed system concepts
 
 ---
 
-## 📂 Project Architecture
+# ✨ Current Features
+
+## 🔐 Authentication
+- User Registration & Login
+- Captain Registration & Login
+- JWT Authentication
+- Password Hashing using bcrypt
+- Protected Routes & Middleware
+
+## 🚖 Ride Management
+- Create Ride API
+- Ride Validation
+- Secure OTP Generation
+- Pending Ride APIs
+- Ride Status Management
+
+## 🗺️ Maps & Navigation
+- OpenRouteService Integration
+- Real-time Address Autocomplete Suggestions
+- Distance & Duration Calculation
+- Dynamic Fare Calculation Engine
+
+## 📡 Real-Time Communication
+- Socket.IO Server Integration
+- Live Geolocation Streaming
+- Event-driven ride state updates
+
+---
+
+# 🏗️ System Architecture
 
 ```text
-UBER-CLONE/
-├── backend/                  # Express server & MongoDB logic
-│   ├── controllers/          # API logic (auth, maps, rides)
-│   ├── middlewares/          # JWT protection
-│   ├── models/               # Mongoose Database Schemas
-│   ├── routes/               # API endpoint definitions
-│   ├── services/             # OpenRouteService API integration
-│   └── socket.js             # Real-time WebSocket handlers
-│
-└── frontend/                 # React applications
-    └── rider/                # The Rider-facing Web App
-        ├── src/
-        │   ├── components/   # Reusable UI components
-        │   ├── context/      # AuthContext for state
-        │   ├── pages/        # Login, Register, Home
-        │   └── services/     # Axios API instances
+                    React Frontend
+                          │
+                          │ REST API / WebSockets
+                          ▼
+                 Express.js Backend
+                          │
+      ┌───────────────────┼───────────────────┐
+      │                   │                   │
+ Controllers          Middleware         Services
+      │                   │                   │
+      └───────────────────┼───────────────────┘
+                          │
+                       MongoDB
+```
+
+The backend follows a layered architecture where every component has a single responsibility.
+
+---
+
+# 🧠 Backend Architecture
+
+| Layer | Responsibility |
+|--------|----------------|
+| Routes | Defines API endpoints |
+| Controllers | Receives requests and returns responses |
+| Services | Contains all business logic |
+| Middleware | Authentication & request validation |
+| Models | MongoDB schema definitions |
+| Database | Stores application data |
+
+---
+
+# 🔐 Authentication Workflow
+
+```text
+User
+   │
+   ▼
+Register / Login
+   │
+   ▼
+Password Hashing (bcrypt)
+   │
+   ▼
+JWT Token Generated
+   │
+   ▼
+Client Stores Token
+   │
+   ▼
+Protected Routes
+   │
+   ▼
+Authentication Middleware
 ```
 
 ---
 
-## 👨‍💻 Author
+# 🚕 Ride Booking Workflow
 
-Developed by **Indra Mohan Kumar** 
-*(Currently under active development)*
+```text
+Passenger
+     │
+     ▼
+Create Ride Request
+     │
+     ▼
+Validate Pickup & Destination
+     │
+     ▼
+Calculate Fare
+     │
+     ▼
+Generate Secure OTP
+     │
+     ▼
+Create Ride Document
+     │
+     ▼
+Store Ride in MongoDB
+     │
+     ▼
+Return Ride Details
+```
+
+---
+
+# 🚖 Ride Lifecycle
+
+| Status | Description |
+|--------|-------------|
+| Requested | Ride has been created |
+| Accepted | Driver accepts the ride |
+| Arrived | Driver reaches pickup location |
+| Ongoing | Ride starts |
+| Completed | Ride successfully ends |
+| Cancelled | Ride cancelled |
+| Rejected | Ride rejected by driver |
+
+---
+
+# 💻 Technology Stack
+
+| Category | Technology | Purpose |
+|-----------|------------|---------|
+| Frontend | React.js | User Interface |
+| Build Tool | Vite | Fast development |
+| Styling | Tailwind CSS | Responsive UI |
+| Backend | Node.js + Express.js | REST APIs |
+| Database | MongoDB | Persistent data storage |
+| ODM | Mongoose | MongoDB object modeling |
+| Authentication | JWT + bcrypt | Secure authentication |
+| Real-Time | Socket.IO | Bi-directional communication |
+| Geospatial | OpenRouteService | Routing and coordinates |
+| API Testing | Postman | Endpoint testing |
+| Version Control | Git & GitHub | Source control |
+
+---
+
+# 📂 Backend Structure
+
+| Folder | Responsibility |
+|---------|----------------|
+| config | Configuration files |
+| controllers | API controllers |
+| middleware | Authentication & validation |
+| models | Database schemas |
+| routes | API routes |
+| services | Business logic |
+| utils | Helper functions |
+| db | Database connection |
+
+---
+
+# 📊 Current Progress
+
+| Module | Status |
+|---------|--------|
+| User Authentication | ✅ Completed |
+| Captain Authentication | ✅ Completed |
+| JWT Authorization | ✅ Completed |
+| Middleware | ✅ Completed |
+| Database Models | ✅ Completed |
+| Ride Routing & APIs | ✅ Completed |
+| OpenRouteService Integration | ✅ Completed |
+| Dynamic Fare Calculation | ✅ Completed |
+| OTP Generation | ✅ Completed |
+| Modular Backend Architecture | ✅ Completed |
+| Socket.IO Live Streaming | ✅ Completed |
+
+---
+
+# 🛣️ Project Roadmap
+
+The following technologies and features will be integrated as the project continues to evolve.
+
+## ⚡ Redis
+Redis will be integrated to improve performance by caching frequently changing data.
+Planned use cases include:
+- Active Driver Cache
+- Driver Availability
+- OTP Expiration
+- Nearby Driver Lookup
+
+## 📨 Apache Kafka
+Kafka will be explored to understand event-driven architecture.
+Possible integrations include:
+- Ride Events
+- Driver Assignment Events
+- Analytics Pipeline
+- Future Microservice Communication
+
+## 💳 Payments
+- Payment Gateway Integration
+- Ride Billing
+- Transaction History
+
+## ☁️ Deployment
+- Docker
+- CI/CD Pipeline
+- Cloud Deployment
+
+---
+
+# 📚 Learning Outcomes
+
+| Concept | Status |
+|----------|--------|
+| REST APIs | ✅ |
+| JWT Authentication | ✅ |
+| MongoDB Modeling | ✅ |
+| Middleware | ✅ |
+| Service Layer Architecture | ✅ |
+| Modular Backend Design | ✅ |
+| Maps API Integration | ✅ |
+| Socket.IO | ✅ |
+| Redis Caching | 🚧 Planned |
+| Apache Kafka | 🚧 Planned |
+| Docker | 🚧 Planned |
+| CI/CD | 🚧 Planned |
+
+---
+
+# 🤝 Contributing
+
+Contributions, suggestions, and feedback are always welcome.
+Feel free to fork the repository, open an issue, or submit a pull request.
+
+---
+
+# ⭐ Support
+
+If you found this project helpful or interesting, consider giving it a **⭐ Star**.
+Your support motivates me to continue improving the project.
+
+---
+
+# 👨‍💻 Developer
+
+## Indra Mohan Kumar
+**Computer Science Engineering Student**
+**MERN Stack • Backend Development • Data Structures & Algorithms • System Design**
+
+---
+> **Currently under active development with the goal of evolving into a production-inspired ride-hailing platform featuring real-time communication, distributed messaging, caching, and scalable backend architecture.**
