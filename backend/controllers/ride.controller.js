@@ -97,10 +97,33 @@ const acceptRide=async(req,res)=>{
 
     }
 
+    const getFareEstimate = async (req, res) => {
+        try {
+            const { pickup, destination } = req.query;
+            if (!pickup || !destination) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Pickup and destination are required"
+                });
+            }
+            const fareData = await rideService.getFareEstimate(pickup, destination);
+            res.status(200).json({
+                success: true,
+                data: fareData
+            });
+        } catch (error) {
+            res.status(500).json({
+                success: false,
+                message: error.message
+            });
+        }
+    };
+
     module.exports={
         createRide,
         getPendingRides,
         acceptRide,
         startRide,
-        completeRide
+        completeRide,
+        getFareEstimate
 };

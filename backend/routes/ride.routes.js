@@ -33,4 +33,10 @@ router.patch(
     rideController.completeRide
 );
 
+router.get(
+    '/get-fare',
+    authMiddleware,
+    rideController.getFareEstimate
+);
+
 module.exports = router;

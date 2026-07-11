@@ -133,6 +133,41 @@ const completeRide=async(rideId,driverId)=>{
     }
     return ride;
 }
+const getFareEstimate = async (pickupLocation, dropoffLocation) => {
+    if (!pickupLocation || !dropoffLocation) {
+        throw new Error("Please provide pickup and dropoff locations");
+    }
+    const { distance, duration } = await mapsService.getDistanceAndTime(pickupLocation, dropoffLocation);
+    const baseFare = mapsService.calculateFare(distance, duration);
+
+    // Vehicle-specific fare multipliers
+    const vehicles = [
+        {
+            type: 'UberGo',
+            fare: Math.round(baseFare),
+            eta: '2 mins',
+            icon: '🚗'
+        },
+        {
+            type: 'Sedan',
+            fare: Math.round(baseFare * 1.3),
+            eta: '3 mins',
+            icon: '🚘'
+        },
+        {
+            type: 'SUV',
+            fare: Math.round(baseFare * 1.8),
+            eta: '5 mins',
+            icon: '🚙'
+        }
+    ];
+
+    return {
+        vehicles,
+        distance: parseFloat(distance.toFixed(2)),
+        duration: parseFloat(duration.toFixed(2))
+    };
+};
 
 
 module.exports={
@@ -140,5 +175,6 @@ module.exports={
     getPendingRides,
     acceptRide,
     startRide,
-    completeRide
+    completeRide,
+    getFareEstimate
 };
