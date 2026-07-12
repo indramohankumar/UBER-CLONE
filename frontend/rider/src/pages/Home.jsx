@@ -2,27 +2,62 @@ import React, { useState, useEffect } from 'react';
 import LocationSearchPanel from '../components/LocationSearchPanel';
 import api from '../services/api';
 import VehiclePanel from '../components/VehiclePanel';
+import ConfrimRidePanel from './../components/ConfrimRidePanel';
 
 function Home() {
-    const [pickup, setPickup] = useState('');
+ const [pickup, setPickup] =useState('');
     const [destination, setDestination] = useState('');
     const [panelOpen, setPanelOpen] = useState(false);
-    const [suggestedLocations, setSuggestedLocations] = useState([]);
+ const [suggestedLocations, setSuggestedLocations] =useState([]);
     const [activeInput, setActiveInput] = useState('');
-    const [vehiclePanelOpen, setVehiclePanelOpen] = useState(false);
+ const [vehiclePanelOpen, setVehiclePanelOpen]=useState(false);
     const [fareData, setFareData] = useState(null);
     const [loading, setLoading] = useState(false);
+    const [confirmRidePanelOpen, setConfirmRidePanelOpen]= useState(false);
+    const [selectedVehicle, setSelectedVehicle]= useState(null);
+const [currentRide, setCurrentRide] = useState(null);
+const[waitingForDriver, setWaitingForDriver] = useState(false);
+
+const handleConfirmRide =async () => {
+    try {
+        const { data } = await api.post(
+            "/rides/create",
+            {
+                pickupLocation: pickup,
+                dropoffLocation: destination
+            },
+            {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem("token")}`
+                }
+            }
+        );
+
+        setCurrentRide(data.data);
+
+        setConfirmRidePanelOpen(false);
+
+        setWaitingForDriver(true);
+
+
+    } catch (error) {
+        console.error(error);
+    }
+};
+    const handleVehicleSelect = (vehicle) => {
+        setSelectedVehicle(vehicle);
+        setVehiclePanelOpen(false);
+        setConfirmRidePanelOpen(true);
+    };
 
     const handleLocationSelect = (location) => {
-        if (activeInput === 'pickup') {
+        if (activeInput=== 'pickup') {
             setPickup(location);
         } else {
             setDestination(location);
         }
         setPanelOpen(false);
     }
-
-    // Fetch fare estimate from backend
     const handleFindRide = async () => {
         if (!pickup || !destination) {
             alert("Please enter pickup and destination");
@@ -31,8 +66,7 @@ function Home() {
 
         setPanelOpen(false);
         setLoading(true);
-
-        try {
+  try {
             const { data } = await api.get(
                 `/rides/get-fare?pickup=${encodeURIComponent(pickup)}&destination=${encodeURIComponent(destination)}`,
                 {
@@ -60,14 +94,14 @@ function Home() {
             }
             try {
                 const { data } = await api.get(`/maps/suggestions?input=${encodeURIComponent(query)}`, {
-                    headers: {
+                      headers: {
                         Authorization: `Bearer ${localStorage.getItem('token')}`
                     }
                 });
                 setSuggestedLocations(data.suggestions);
             } catch (error) {
                 console.error("Error fetching suggested locations:", error);
-            }
+    }
         };
 
         fetchSuggestedLocations();
@@ -80,7 +114,7 @@ function Home() {
 
             <div
                 className={`absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl p-6 transition-all duration-300 ${
-                    panelOpen || vehiclePanelOpen ? 'h-[70%]' : 'h-auto'
+                    panelOpen || vehiclePanelOpen || confirmRidePanelOpen|| waitingForDriver ? 'h-[70%]' : 'h-auto'
                 }`}
             >
                 <h2 className="text-2xl font-semibold">Where to?</h2>
@@ -132,7 +166,22 @@ function Home() {
                 )}
 
                 {vehiclePanelOpen && fareData && (
-                    <VehiclePanel fareData={fareData} />
+                    <VehiclePanel fareData={fareData}
+                    onVehicleSelect={handleVehicleSelect} />
+                )}
+
+                {confirmRidePanelOpen && selectedVehicle && (
+                    <ConfrimRidePanel 
+                        vehicle={selectedVehicle} 
+                        pickup={pickup} 
+                        destination={destination}
+                        fareData={fareData}
+                        onBack={() => {
+                            setConfirmRidePanelOpen(false);
+                            setVehiclePanelOpen(true);
+                        }}
+                        onConfirm={handleConfirmRide}
+                    />
                 )}
             </div>
         </div>

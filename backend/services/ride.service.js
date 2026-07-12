@@ -140,7 +140,7 @@ const getFareEstimate = async (pickupLocation, dropoffLocation) => {
     const { distance, duration } = await mapsService.getDistanceAndTime(pickupLocation, dropoffLocation);
     const baseFare = mapsService.calculateFare(distance, duration);
 
-    // Vehicle-specific fare multipliers
+    
     const vehicles = [
         {
             type: 'UberGo',

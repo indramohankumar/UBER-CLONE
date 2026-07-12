@@ -1,21 +1,29 @@
 import React from 'react';
 
-function VehiclePanel({ fareData }) {
+function VehiclePanel({ fareData ,
+     onVehicleSelect }) {
+    if(!fareData){
+        return <p className="text-center text-gray-500">Loading fares....</p>;
+    }
+    const distance= Number(fareData.distance).toFixed(1);
+    const duration= Math.ceil(fareData.duration);
     return (
         <div className="mt-6">
             <div className="flex justify-between items-center mb-4 px-2">
                 <p className="text-sm text-gray-500">
-                    📍 {fareData.distance} km
+                    📍 {distance} km
                 </p>
                 <p className="text-sm text-gray-500">
-                    ⏱️ {fareData.duration} mins
+                    ⏱️ {duration} mins
                 </p>
+
             </div>
 
             
-            {fareData.vehicles.map((vehicle, index) => (
+  {fareData.vehicles.map((vehicle, index) => (
                 <div
-                    key={index}
+                    key={vehicle.type || index}
+                    onClick={() => onVehicleSelect && onVehicleSelect(vehicle)}
                     className="flex items-center justify-between p-4 rounded-xl hover:bg-gray-100 cursor-pointer transition"
                 >
                     <div className="flex items-center gap-4">
@@ -30,6 +38,7 @@ function VehiclePanel({ fareData }) {
                     <p className="font-semibold">₹{vehicle.fare}</p>
                 </div>
             ))}
+            
         </div>
     );
 }
