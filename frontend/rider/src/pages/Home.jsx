@@ -1,10 +1,39 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect,useContext } from 'react';
 import LocationSearchPanel from '../components/LocationSearchPanel';
 import api from '../services/api';
 import VehiclePanel from '../components/VehiclePanel';
 import ConfrimRidePanel from './../components/ConfrimRidePanel';
-
+import WaitingForDriverPanel from '../components/WaitingForDriverPanel';
+import socket from '../services/socket';
+import { AuthContext } from './../context/AuthContext';
 function Home() {
+    const { user } = useContext(AuthContext);
+    useEffect(() => {
+        if(!user) return;
+        socket.connect();
+        socket.emit("join", { id: user._id, role: "user" });
+        return () => {
+            socket.disconnect();
+        };
+    }, [user]);
+    useEffect(() => {
+        socket.on("ride-accepted", (ride) => {
+            console.log("Ride accepted:", ride);
+            setCurrentRide(ride);
+            setWaitingForDriver(false);
+        });
+        return () => {
+            socket.off("ride-accepted");
+        };
+    }, []);
+    useEffect(() => {
+        socket.on("driver-location-update", (location) => {
+            console.log(location);
+        });
+        return () => {
+            socket.off("driver-location-update");
+        };
+    }, []);
  const [pickup, setPickup] =useState('');
     const [destination, setDestination] = useState('');
     const [panelOpen, setPanelOpen] = useState(false);
@@ -182,6 +211,9 @@ const handleConfirmRide =async () => {
                         }}
                         onConfirm={handleConfirmRide}
                     />
+                )}
+                {waitingForDriver && currentRide && (
+                    <WaitingForDriverPanel ride={currentRide} />
                 )}
             </div>
         </div>

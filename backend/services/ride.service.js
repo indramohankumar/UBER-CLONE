@@ -33,7 +33,7 @@ const createRide=async({
          delete rideData.otp;
        const io=getIO();
     for(const driver of nearbyDrivers){
-        const socketId=getSocketId(driver._id.toString());
+        const socketId = getSocketId(driver._id.toString(), "driver");
         if(socketId){
         
             io.to(socketId).emit("new-ride",rideData);
