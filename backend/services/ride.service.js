@@ -37,10 +37,9 @@ const createRide=async({
         if(socketId){
         
             io.to(socketId).emit("new-ride",rideData);
-
+        }
     }
-}
-    return newRide;
+    return rideData;
 
 };
 const getPendingRides=async()=>{
@@ -48,32 +47,37 @@ const getPendingRides=async()=>{
     return pendingRides;
 }
 
-const acceptRide=async(rideId,driverId)=>{
-    const ride=await Ride.findById(rideId);
-    if(!ride){
+const acceptRide = async (rideId, driverId) => {
+    const ride = await Ride.findById(rideId);
+    if (!ride) {
         throw new Error("Ride not found");
     }
-    if(ride.status!=="requested"){
+    if (ride.status !== "requested") {
         throw new Error("Ride is not available for acceptance");
     }
-    ride.driver=driverId;
-    ride.status="accepted";
+    ride.driver = driverId;
+    ride.status = "accepted";
     await ride.save();
-    const io=getIO();
-    const riderSocketId=getSocketId(ride.rider.toString(),
-    "user" );
-    if(riderSocketId){
-        io.to(riderSocketId).emit("ride-accepted",{
-            rideId:ride._id,
-            status:ride.status,
-            driverId:ride.driver.toString()
 
-        });
-        
+    const populatedRide = await Ride.findById(rideId)
+        .populate({
+            path: "driver",
+            select: "fullname vehicle"
+        })
+        .populate({
+            path: "rider",
+            select: "fullname"
+        })
+        .select("+otp");
+
+    const io = getIO();
+    const riderSocketId = getSocketId(populatedRide.rider._id.toString(), "user");
+    
+    if (riderSocketId) {
+        io.to(riderSocketId).emit("ride-accepted", populatedRide);
     }
 
-    
-    return ride;
+    return populatedRide;
 }
 const startRide=async(rideId,driverId,otp)=>{
     if(!rideId||!driverId||!otp){
@@ -137,7 +141,7 @@ const getFareEstimate = async (pickupLocation, dropoffLocation) => {
     if (!pickupLocation || !dropoffLocation) {
         throw new Error("Please provide pickup and dropoff locations");
     }
-    const { distance, duration } = await mapsService.getDistanceAndTime(pickupLocation, dropoffLocation);
+    const { distance, duration, pickupCoordinates, dropoffCoordinates, routeGeometry } = await mapsService.getDistanceAndTime(pickupLocation, dropoffLocation);
     const baseFare = mapsService.calculateFare(distance, duration);
 
     
@@ -165,7 +169,10 @@ const getFareEstimate = async (pickupLocation, dropoffLocation) => {
     return {
         vehicles,
         distance: parseFloat(distance.toFixed(2)),
-        duration: parseFloat(duration.toFixed(2))
+        duration: parseFloat(duration.toFixed(2)),
+        pickupCoordinates,
+        dropoffCoordinates,
+        routeGeometry
     };
 };
 
@@ -177,4 +184,4 @@ module.exports={
     startRide,
     completeRide,
     getFareEstimate
-};
+}

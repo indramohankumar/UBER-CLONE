@@ -69,8 +69,10 @@ const distanceInKm = distance / 1000;
 const durationInMinutes= duration / 60;
 return {
     distance: distanceInKm,
-    duration: durationInMinutes
-
+    duration: durationInMinutes,
+    pickupCoordinates,
+    dropoffCoordinates,
+    routeGeometry: route.geometry
 };
 };
 const calculateFare = (distance, duration) => {

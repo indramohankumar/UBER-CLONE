@@ -4,6 +4,8 @@ import api from '../services/api';
 import VehiclePanel from '../components/VehiclePanel';
 import ConfrimRidePanel from './../components/ConfrimRidePanel';
 import WaitingForDriverPanel from '../components/WaitingForDriverPanel';
+import DriverDetailsPanel from '../components/DriverDetailsPanel';
+import LiveMap from '../components/LiveMap';
 import socket from '../services/socket';
 import { AuthContext } from './../context/AuthContext';
 function Home() {
@@ -26,9 +28,12 @@ function Home() {
             socket.off("ride-accepted");
         };
     }, []);
+    const [driverLocation, setDriverLocation] = useState(null);
+
     useEffect(() => {
         socket.on("driver-location-update", (location) => {
-            console.log(location);
+            console.log("Live Driver Location:", location);
+            setDriverLocation(location);
         });
         return () => {
             socket.off("driver-location-update");
@@ -137,54 +142,63 @@ const handleConfirmRide =async () => {
     }, [pickup, destination, activeInput]);
 
     return (
-        <div className="h-screen relative">
-            <div className="h-full bg-gray-200">
-            </div>
+        <div className="h-screen relative overflow-hidden">
+            <LiveMap 
+                pickup={currentRide?.pickupCoordinates || fareData?.pickupCoordinates}
+                destination={currentRide?.dropoffCoordinates || fareData?.dropoffCoordinates}
+                route={currentRide?.routeGeometry || fareData?.routeGeometry}
+                driverLocation={driverLocation}
+            />
 
             <div
-                className={`absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl p-6 transition-all duration-300 ${
-                    panelOpen || vehiclePanelOpen || confirmRidePanelOpen|| waitingForDriver ? 'h-[70%]' : 'h-auto'
+                className={`absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl p-6 transition-all duration-300 z-10 ${
+                    panelOpen ? 'h-[70%]' : 'h-auto'
                 }`}
             >
-                <h2 className="text-2xl font-semibold">Where to?</h2>
+                {/* Hide the search inputs when showing vehicles, confirming ride, or during active ride */}
+                {!vehiclePanelOpen && !confirmRidePanelOpen && !waitingForDriver && (!currentRide || currentRide.status !== "accepted") && (
+                    <>
+                        <h2 className="text-2xl font-semibold">Where to?</h2>
 
-                <div className="mt-6">
-                    <input
-                        type="text"
-                        placeholder="Enter pickup location"
-                        value={pickup}
-                        onChange={(e) => setPickup(e.target.value)}
-                        onFocus={() => {
-                            setPanelOpen(true);
-                            setVehiclePanelOpen(false);
-                            setActiveInput('pickup');
-                        }}
-                        className="w-full bg-gray-100 rounded-lg px-4 py-3"
-                    />
-                </div>
+                        <div className="mt-6">
+                            <input
+                                type="text"
+                                placeholder="Enter pickup location"
+                                value={pickup}
+                                onChange={(e) => setPickup(e.target.value)}
+                                onFocus={() => {
+                                    setPanelOpen(true);
+                                    setVehiclePanelOpen(false);
+                                    setActiveInput('pickup');
+                                }}
+                                className="w-full bg-gray-100 rounded-lg px-4 py-3"
+                            />
+                        </div>
 
-                <div className="mt-4">
-                    <input
-                        type="text"
-                        placeholder="Where to?"
-                        value={destination}
-                        onChange={(e) => setDestination(e.target.value)}
-                        onFocus={() => {
-                            setPanelOpen(true);
-                            setVehiclePanelOpen(false);
-                            setActiveInput('destination');
-                        }}
-                        className="w-full bg-gray-100 rounded-lg px-4 py-3"
-                    />
-                </div>
+                        <div className="mt-4">
+                            <input
+                                type="text"
+                                placeholder="Where to?"
+                                value={destination}
+                                onChange={(e) => setDestination(e.target.value)}
+                                onFocus={() => {
+                                    setPanelOpen(true);
+                                    setVehiclePanelOpen(false);
+                                    setActiveInput('destination');
+                                }}
+                                className="w-full bg-gray-100 rounded-lg px-4 py-3"
+                            />
+                        </div>
 
-                <button
-                    onClick={handleFindRide}
-                    disabled={loading}
-                    className="w-full bg-black text-white rounded-lg py-3 mt-6 font-semibold hover:bg-gray-900 transition disabled:bg-gray-400"
-                >
-                    {loading ? 'Finding rides...' : 'Find Ride'}
-                </button>
+                        <button
+                            onClick={handleFindRide}
+                            disabled={loading}
+                            className="w-full bg-black text-white rounded-lg py-3 mt-6 font-semibold hover:bg-gray-900 transition disabled:bg-gray-400"
+                        >
+                            {loading ? 'Finding rides...' : 'Find Ride'}
+                        </button>
+                    </>
+                )}
 
                 {panelOpen && (
                     <LocationSearchPanel
@@ -212,9 +226,14 @@ const handleConfirmRide =async () => {
                         onConfirm={handleConfirmRide}
                     />
                 )}
-                {waitingForDriver && currentRide && (
+                {waitingForDriver && (
                     <WaitingForDriverPanel ride={currentRide} />
                 )}
+
+                {!waitingForDriver && currentRide && currentRide.status === "accepted" && (
+                    <DriverDetailsPanel ride={currentRide} />
+                )}
+                
             </div>
         </div>
     );
