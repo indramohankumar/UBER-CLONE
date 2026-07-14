@@ -42,38 +42,39 @@ const getAutoCompleteSuggestions = async (input) => {
 const getDistanceAndTime = async (origin, destination) => {
     const pickupCoordinates = await getCoordinates(origin);
     const dropoffCoordinates = await getCoordinates(destination);
-    const response=await axios.post(`https://api.openrouteservice.org/v2/directions/driving-car`,
-         {
-            coordinates:[
-                [
-                    pickupCoordinates.longitude,
-                    pickupCoordinates.latitude
-                ],
-                [
-                    dropoffCoordinates.longitude,
-                    dropoffCoordinates.latitude
-                ]
-            ]
-        },
-        {
-            headers:{
-                Authorization: process.env.ORS_API_KEY,
-                'Content-Type': 'application/json'
+    try {
+        const response = await axios.get(
+            `http://router.project-osrm.org/route/v1/driving/${pickupCoordinates.longitude},${pickupCoordinates.latitude};${dropoffCoordinates.longitude},${dropoffCoordinates.latitude}`,
+            {
+                params: {
+                    overview: 'full',
+                    geometries: 'polyline'
+                },
+                timeout: 15000
             }
+        );
+        
+        if (response.data.code !== 'Ok' || !response.data.routes || response.data.routes.length === 0) {
+            throw new Error("No route found between these locations.");
         }
-    );
-    const route = response.data.routes[0];
-    const distance = route.summary.distance;
-const duration = route.summary.duration;
-const distanceInKm = distance / 1000;
-const durationInMinutes= duration / 60;
-return {
-    distance: distanceInKm,
-    duration: durationInMinutes,
-    pickupCoordinates,
-    dropoffCoordinates,
-    routeGeometry: route.geometry
-};
+        
+        const route = response.data.routes[0];
+        const distanceInKm = route.distance / 1000;
+        const durationInMinutes = route.duration / 60;
+        
+        return {
+            distance: distanceInKm,
+            duration: durationInMinutes,
+            pickupCoordinates,
+            dropoffCoordinates,
+            routeGeometry: route.geometry
+        };
+    } catch (error) {
+        if (error.code === 'ECONNABORTED') {
+            throw new Error("Route calculation timed out. Please try again.");
+        }
+        throw new Error(error.response?.data?.message || "Unable to calculate route and fare.");
+    }
 };
 const calculateFare = (distance, duration) => {
     const BASE_FARE=40;

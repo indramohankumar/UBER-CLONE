@@ -17,7 +17,7 @@ function Home() {
         return () => {
             socket.disconnect();
         };
-    }, [user]);
+    }, [user?._id]);
     useEffect(() => {
         socket.on("ride-accepted", (ride) => {
             console.log("Ride accepted:", ride);
@@ -113,9 +113,14 @@ const handleConfirmRide =async () => {
             setVehiclePanelOpen(true);
         } catch (error) {
             console.error("Error fetching fare:", error);
-            alert("Could not get fare estimate. Please try again.");
-        } finally {
+            const errorMessage = error.response?.data?.message || "Could not get fare estimate. Please try again.";
+            
+            // Clear loading state first so the button un-freezes before the alert blocks the thread
             setLoading(false);
+            
+            setTimeout(() => {
+                alert(errorMessage);
+            }, 10);
         }
     };
 
@@ -138,7 +143,11 @@ const handleConfirmRide =async () => {
     }
         };
 
-        fetchSuggestedLocations();
+        const timerId = setTimeout(() => {
+            fetchSuggestedLocations();
+        }, 500);
+
+        return () => clearTimeout(timerId);
     }, [pickup, destination, activeInput]);
 
     return (
