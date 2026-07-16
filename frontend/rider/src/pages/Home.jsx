@@ -114,8 +114,7 @@ const handleConfirmRide =async () => {
         } catch (error) {
             console.error("Error fetching fare:", error);
             const errorMessage = error.response?.data?.message || "Could not get fare estimate. Please try again.";
-            
-            // Clear loading state first so the button un-freezes before the alert blocks the thread
+        
             setLoading(false);
             
             setTimeout(() => {

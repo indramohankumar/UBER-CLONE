@@ -3,7 +3,6 @@ import { MapContainer, TileLayer, Marker, Polyline, useMap } from "react-leaflet
 import L from 'leaflet';
 import polylineDecoder from '@mapbox/polyline';
 import 'leaflet/dist/leaflet.css';
-
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
 import markerIcon from 'leaflet/dist/images/marker-icon.png';
 import markerShadow from 'leaflet/dist/images/marker-shadow.png';
@@ -14,12 +13,17 @@ L.Icon.Default.mergeOptions({
     iconRetinaUrl: markerIcon2x,
     shadowUrl: markerShadow,
 });
+const driverIcon = new L.DivIcon({
+    html: '<div style="font-size:24px;">🚗</div>',
+    className: 'driver-icon',
+    iconSize:[30,30],
+    iconAnchor:[15,15],
+})
 function MapBounds({ positions }) {
     const map = useMap();
     
     useEffect(() => {
         if (positions.length > 1) {
-            // Adds professional padding so markers aren't touching the edge of the screen
             map.fitBounds(positions, { padding: [50, 50] });
         }
     }, [positions, map]);
@@ -29,16 +33,18 @@ function MapBounds({ positions }) {
 
 function LiveMap({ pickup, destination, driverLocation, route }) {
     const [decodedRoute, setDecodedRoute] = useState([]);
-    useEffect(() => {
-        if (route) {
-            try {
-                const decoded = polylineDecoder.decode(route);
-                setDecodedRoute(decoded);
-            } catch (error) {
-                console.error("Failed to decode route:", error);
-            }
-        }
-    }, [route]);
+  useEffect(() => {
+    if(!route){
+        setDecodedRoute([]);
+        return;
+    }
+    try{
+        const decoded = polylineDecoder.decode(route);
+        setDecodedRoute(decoded);
+    }catch(error){
+        console.error("failed to decode the route ",error);
+    }
+}, [route]);
 
     const markerPositions = [];
     if (pickup) markerPositions.push([pickup.latitude, pickup.longitude]);
@@ -49,6 +55,7 @@ function LiveMap({ pickup, destination, driverLocation, route }) {
     return (
         <div className="h-full w-full z-0 relative">
             <MapContainer
+
                 center={center}
                 zoom={13}
                 zoomControl={false}
@@ -58,20 +65,20 @@ function LiveMap({ pickup, destination, driverLocation, route }) {
                     url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
                     attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
                 />
-                {markerPositions.length > 1 && (
-                    <MapBounds positions={markerPositions} />
-                )}
+                <MapBounds positions={markerPositions} />
 
                 {pickup && (
                     <Marker position={[pickup.latitude, pickup.longitude]} />
                 )}
                 {destination && (
-                    <Marker position={[destination.latitude, destination.longitude]} />
+                    <Marker position={[destination.latitude, destination.longitude]}
+                     />
                 )}
                 
-                {/* Plot the live driver location */}
+                
                 {driverLocation && (
-                    <Marker position={[driverLocation.latitude, driverLocation.longitude]} />
+                    <Marker position={[driverLocation.latitude, driverLocation.longitude]}
+                    icon={driverIcon} />
                 )}
                 {decodedRoute.length > 0 && (
                     <Polyline 
