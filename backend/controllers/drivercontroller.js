@@ -4,7 +4,7 @@ const driverService=require('../services/driver.service');
 const registerDriver=async(req,res)=>{
     try{
         const { fullname, email, password, vehicle, location, role } = req.body;
-        if(!fullname || !fullname.firstname || !email || !password || !vehicle || !location) {
+        if(!fullname || !fullname.firstname || !email || !password || !vehicle) {
             return res.status(400).json({
                 success: false,
                 message: "Please provide all required fields"
@@ -19,8 +19,9 @@ const registerDriver=async(req,res)=>{
         }
         // Hash password
         const hashedPassword =await Driver.hashPassword(password);
-        // Create driver
-        const newDriver=await Driver.create({
+        
+        // Prepare driver data
+        const driverData = {
             fullname:{
                 firstname:fullname.firstname,
                 lastname:fullname.lastname
@@ -28,9 +29,16 @@ const registerDriver=async(req,res)=>{
             email,
             password:hashedPassword,
             vehicle,
-            location,
             role
-        });
+        };
+        
+        // Only add location if it was explicitly provided, otherwise let MongoDB use the default [0,0]
+        if (location) {
+            driverData.location = location;
+        }
+
+        // Create driver
+        const newDriver=await Driver.create(driverData);
         // Generate JWT
         const token=newDriver.generateAuthToken();
         return res.status(201).json({
