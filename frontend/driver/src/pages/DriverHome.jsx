@@ -4,6 +4,9 @@ import api from '../services/api';
 import socket from '../services/socket';
 import RideRequestPanel from '../componenets/RideRequestPanel';
 import AcceptedRidePanel from '../componenets/AcceptedRidePanel';
+import OTPPanel from '../componenets/otppannel';
+import RideInProgressPanel from '../componenets/RideInProgressPanel';
+import RideCompletedPanel from '../componenets/RideCompletedPanel';
 const RideStatus = {
     IDLE: 'idle',
     ACCEPTED: 'accepted',
@@ -21,8 +24,20 @@ function DriverHome() {
     useEffect(() => {
         if (!driver) return;
         socket.connect();
-        socket.emit('join', { id: driver._id, role: 'driver' });
+        
+        const handleConnect = () => {
+            socket.emit('join', { id: driver._id, role: 'driver' });
+        };
+        
+        socket.on('connect', handleConnect);
+        
+        // In case it's already connected when this runs
+        if (socket.connected) {
+            handleConnect();
+        }
+
         return () => {
+            socket.off('connect', handleConnect);
             socket.disconnect();
         };
     }, [driver?._id]);
@@ -58,14 +73,46 @@ function DriverHome() {
 
     const handleAcceptRide = async (rideId) => {
         try {
-            const response = await api.patch(`/rides/${rideId}/accept`);
-            // Only NOW does it become the current ride
-            setCurrentRide(response.data.ride);
+            const response = await api.patch(
+              `/rides/${rideId}/accept`);
+            setCurrentRide(response.data.data);
             setNewRide(null);
             setRideStatus(RideStatus.ACCEPTED);
         } catch (error) {
             console.error('Error accepting ride:', error);
         }
+    };
+
+    const handleStartRide=async(otp)=>{
+      try{
+        const response=await api.patch(
+          `/rides/${currentRide._id}/start`,
+          {otp}
+        );
+        setCurrentRide(response.data.data);
+        setRideStatus(RideStatus.ONGOING);
+      }catch(error){
+        console.error('Error starting ride:', error
+        )
+      }
+    }
+    const handleCompleteRide=async()=>{
+      try{
+        const response=await api.patch(
+          `/rides/${currentRide._id}/complete`
+        );
+        setCurrentRide(response.data.data);
+        setRideStatus(RideStatus.COMPLETED);
+      }
+      catch(error){
+        console.error('Error completing ride:', error);
+      }
+    }
+    const restDriverState=()=>{
+      setCurrentRide(null);
+      setNewRide(null);
+      setRideStatus(RideStatus.IDLE);
+
     };
 
     return (
@@ -89,9 +136,22 @@ function DriverHome() {
                 />
             )}
             {rideStatus === RideStatus.ARRIVED && (
-                <div className="fixed bottom-0 left-0 right-0 bg-white rounded-t-2xl p-6 shadow-2xl">
-                    <p className="text-center text-gray-500 font-medium">Ask rider for OTP to start the ride</p>
-                </div>
+                 <OTPPanel
+        ride={currentRide}
+        onStart={handleStartRide}
+    />
+            )}
+            {rideStatus === RideStatus.ONGOING && (
+                <RideInProgressPanel
+                    ride={currentRide}
+                    onComplete={handleCompleteRide}
+                />
+            )}
+            {rideStatus === RideStatus.COMPLETED && (
+                <RideCompletedPanel
+                    ride={currentRide}
+                    onFinish={restDriverState}
+                />
             )}
 
         </div>

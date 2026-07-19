@@ -13,8 +13,19 @@ function Home() {
     useEffect(() => {
         if(!user) return;
         socket.connect();
-        socket.emit("join", { id: user._id, role: "user" });
+        
+        const handleConnect = () => {
+            socket.emit("join", { id: user._id, role: "user" });
+        };
+        
+        socket.on('connect', handleConnect);
+        
+        if (socket.connected) {
+            handleConnect();
+        }
+
         return () => {
+            socket.off('connect', handleConnect);
             socket.disconnect();
         };
     }, [user?._id]);
@@ -76,6 +87,7 @@ const handleConfirmRide =async () => {
 
     } catch (error) {
         console.error(error);
+        alert("Failed to create ride: " + (error.response?.data?.message || error.message));
     }
 };
     const handleVehicleSelect = (vehicle) => {

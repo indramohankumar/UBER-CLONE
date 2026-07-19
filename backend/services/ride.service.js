@@ -22,21 +22,22 @@ const createRide=async({
         fare,
         otp
     });
+    console.log(">>> [createRide] Ride created in DB:", newRide._id);
     const nearbyDrivers=await driverService.findNearbyDrivers(
-        
         pickupCoordinates.latitude,
         pickupCoordinates.longitude,
-        5000
-        
+        50000000 // 50,000 km radius for development testing so any driver gets the request
     );
+    console.log(">>> [createRide] Nearby drivers found:", nearbyDrivers.length);
      const rideData=newRide.toObject();
          delete rideData.otp;
        const io=getIO();
     for(const driver of nearbyDrivers){
         const socketId = getSocketId(driver._id.toString(), "driver");
+        console.log(`>>> [createRide] Driver ${driver._id} -> Socket ID: ${socketId}`);
         if(socketId){
-        
             io.to(socketId).emit("new-ride",rideData);
+            console.log(">>> [createRide] Emitted new-ride to socket:", socketId);
         }
     }
     return rideData;
