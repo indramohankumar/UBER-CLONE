@@ -118,6 +118,25 @@ const acceptRide=async(req,res)=>{
             });
         }
     };
+const arriveAtPickup=async(req,res)=>{
+    try{
+        const {rideId}=req.params;
+        const driverId=req.driver._id;
+        const ride=await rideService.arriveAtPickup(
+rideId,driverId);
+        res.status(200).json({
+            success:true,
+            message:"Driver arrived at pickup location",
+            data:ride
+        });
+    }
+    catch(error){
+        res.status(500).json({
+            success:false,
+            message:error.message
+        });
+    }
+}
 
     module.exports={
         createRide,
@@ -125,5 +144,6 @@ const acceptRide=async(req,res)=>{
         acceptRide,
         startRide,
         completeRide,
-        getFareEstimate
+        getFareEstimate,
+        arriveAtPickup
 };

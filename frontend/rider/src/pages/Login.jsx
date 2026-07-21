@@ -2,6 +2,7 @@ import React,{ useState,useContext} from 'react';
 import { AuthContext } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
+import toast from 'react-hot-toast';
 function Login() {
     const { setUser } = useContext(AuthContext);
     const [email, setEmail] = useState('');
@@ -15,13 +16,13 @@ function Login() {
                 password
             });
             localStorage.setItem('token', response.data.token);
-
-setUser(response.data.user);
-
-navigate('/');
-            
+            setUser(response.data.user);
+            toast.success("Login successful!");
+            navigate('/');
         } catch (error) {
-            console.log("Login failed:", error.response?.data || error.message);
+            const message = error.response?.data?.message || "Login failed";
+            toast.error(message);
+            console.log("Login failed:", message);
         }
     };
   return (

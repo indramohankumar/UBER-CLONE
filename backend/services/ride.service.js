@@ -91,8 +91,8 @@ const startRide=async(rideId,driverId,otp)=>{
     if(!ride.driver || !ride.driver.equals(driverId)){
         throw new Error("You are not authorized to start this ride");
     }
-    if(ride.status!=="accepted"){
-        throw new Error("Ride is not in accepted state");
+    if(ride.status!=="arrived"){
+        throw new Error("Driver has not arrived it yet");
     }
     if(ride.otp!==otp){
         throw new Error("Invalid OTP");
@@ -112,6 +112,7 @@ const startRide=async(rideId,driverId,otp)=>{
     ride.otp=undefined;
     return ride;
 }
+
 const completeRide=async(rideId,driverId)=>{
     if(!rideId||!driverId){
         throw new Error("missing required parameters");
@@ -138,6 +139,7 @@ const completeRide=async(rideId,driverId)=>{
     }
     return ride;
 }
+
 const getFareEstimate = async (pickupLocation, dropoffLocation) => {
     if (!pickupLocation || !dropoffLocation) {
         throw new Error("Please provide pickup and dropoff locations");
@@ -166,6 +168,7 @@ const getFareEstimate = async (pickupLocation, dropoffLocation) => {
             icon: '🚙'
         }
     ];
+    
 
     return {
         vehicles,
@@ -176,6 +179,32 @@ const getFareEstimate = async (pickupLocation, dropoffLocation) => {
         routeGeometry
     };
 };
+const arriveAtPickup=async(rideId,driverId)=>{
+    if(!rideId||!driverId){
+        throw new Error("missing required parameters");
+    }
+    const ride=await Ride.findById(rideId);
+    if(!ride){
+        throw new Error("Ride not found");
+    }
+    if(!ride.driver || !ride.driver.equals(driverId)){
+        throw new Error("You are not authorized to mark arrival for this ride");
+    }
+    if(ride.status!=="accepted"){
+        throw new Error("ride is not in accepted state");
+    }
+    ride.status="arrived";
+    await ride.save();
+    const io=getIO();
+    const riderSocketId=getSocketId(ride.rider.toString(),"user");
+    if(riderSocketId){
+        io.to(riderSocketId).emit("driver-arrived",{
+            rideId:ride._id,
+            status:ride.status
+        })
+    }
+    return ride;
+}
 
 
 module.exports={
@@ -184,5 +213,6 @@ module.exports={
     acceptRide,
     startRide,
     completeRide,
-    getFareEstimate
+    getFareEstimate,
+    arriveAtPickup
 }

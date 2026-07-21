@@ -8,6 +8,7 @@ import DriverDetailsPanel from '../components/DriverDetailsPanel';
 import LiveMap from '../components/LiveMap';
 import socket from '../services/socket';
 import { AuthContext } from './../context/AuthContext';
+import { toast } from 'react-hot-toast';
 function Home() {
     const { user } = useContext(AuthContext);
     useEffect(() => {
@@ -50,6 +51,33 @@ function Home() {
             socket.off("driver-location-update");
         };
     }, []);
+    useEffect(() => {
+        socket.on("ride-completed", (ride) => {
+            console.log("Ride completed:", ride);
+            setCurrentRide(ride);
+        });
+        return () => {
+            socket.off("ride-completed");
+        };
+    }, []);
+    useEffect(() => {
+        socket.on("driver-arrived", (ride) => {
+            console.log("Driver has arrived at pickup location:", ride);
+            setCurrentRide(ride);
+        });
+        return () => {
+            socket.off("driver-arrived");
+        };
+    }, []);
+    useEffect(() => {
+        socket.on("ride-started", (ride) => {
+            console.log("Ride has started:", ride);
+            setCurrentRide(ride);
+        });
+        return () => {
+            socket.off("ride-started");
+        };
+    }, []);
  const [pickup, setPickup] =useState('');
     const [destination, setDestination] = useState('');
     const [panelOpen, setPanelOpen] = useState(false);
@@ -87,7 +115,7 @@ const handleConfirmRide =async () => {
 
     } catch (error) {
         console.error(error);
-        alert("Failed to create ride: " + (error.response?.data?.message || error.message));
+        toast.error("Failed to create ride: " + (error.response?.data?.message || error.message));
     }
 };
     const handleVehicleSelect = (vehicle) => {
@@ -106,7 +134,7 @@ const handleConfirmRide =async () => {
     }
     const handleFindRide = async () => {
         if (!pickup || !destination) {
-            alert("Please enter pickup and destination");
+            toast.error("Please enter pickup and destination");
             return;
         }
 
@@ -123,15 +151,11 @@ const handleConfirmRide =async () => {
             );
             setFareData(data.data);
             setVehiclePanelOpen(true);
+            setLoading(false);
         } catch (error) {
             console.error("Error fetching fare:", error);
-            const errorMessage = error.response?.data?.message || "Could not get fare estimate. Please try again.";
-        
+            toast.error(error.response?.data?.message || "Could not get fare estimate. Please try again.");
             setLoading(false);
-            
-            setTimeout(() => {
-                alert(errorMessage);
-            }, 10);
         }
     };
 
@@ -175,7 +199,7 @@ const handleConfirmRide =async () => {
                     panelOpen ? 'h-[70%]' : 'h-auto'
                 }`}
             >
-                {/* Hide the search inputs when showing vehicles, confirming ride, or during active ride */}
+
                 {!vehiclePanelOpen && !confirmRidePanelOpen && !waitingForDriver && (!currentRide || currentRide.status !== "accepted") && (
                     <>
                         <h2 className="text-2xl font-semibold">Where to?</h2>

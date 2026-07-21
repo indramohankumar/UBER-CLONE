@@ -3,6 +3,7 @@ import DriverAuthContext from '../context/DriverAuthContext'
 import {useState,useContext} from 'react'
 import {useNavigate} from 'react-router-dom'
 import api from '../services/api'
+import toast from 'react-hot-toast'
 function DriverLogin() {
     const{setDriver}=useContext(DriverAuthContext);
     const [email,setEmail]=useState('');
@@ -12,7 +13,6 @@ function DriverLogin() {
 
     const handleSubmit=async(e)=>{
         e.preventDefault();
-        setErrorMsg(''); 
         try{
             const response=await api.post('/drivers/login',{
                 email,
@@ -20,11 +20,12 @@ function DriverLogin() {
             });
             localStorage.setItem('token',response.data.token);
             setDriver(response.data.driver);
+            toast.success("Login successful!");
             navigate('/driverhome');
         }
         catch(error){
             const message = error.response?.data?.message || "Login failed";
-            setErrorMsg(message);
+            toast.error(message);
             console.log("Login failed:", message);
         }
     }
@@ -36,12 +37,6 @@ function DriverLogin() {
        
         <div className="flex-1">
             <h2 className="text-3xl font-semibold mb-6">Welcome Back, Driver</h2>
-            
-            {errorMsg && (
-                <div className="bg-red-100 text-red-600 p-3 rounded-lg mb-4 text-sm font-medium">
-                    {errorMsg}
-                </div>
-            )}
 
             <form onSubmit={handleSubmit}>
                 <div className="mb-4">

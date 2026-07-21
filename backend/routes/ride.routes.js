@@ -38,5 +38,10 @@ router.get(
     authMiddleware,
     rideController.getFareEstimate
 );
+router.patch(
+    '/:rideId/arrive',
+    driverAuthMiddleware,
+    rideController.arriveAtPickup
+);
 
 module.exports = router;

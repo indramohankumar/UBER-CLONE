@@ -7,6 +7,7 @@ import AcceptedRidePanel from '../componenets/AcceptedRidePanel';
 import OTPPanel from '../componenets/otppannel';
 import RideInProgressPanel from '../componenets/RideInProgressPanel';
 import RideCompletedPanel from '../componenets/RideCompletedPanel';
+import toast from 'react-hot-toast';
 const RideStatus = {
     IDLE: 'idle',
     ACCEPTED: 'accepted',
@@ -31,7 +32,7 @@ function DriverHome() {
         
         socket.on('connect', handleConnect);
         
-        // In case it's already connected when this runs
+        
         if (socket.connected) {
             handleConnect();
         }
@@ -78,8 +79,12 @@ function DriverHome() {
             setCurrentRide(response.data.data);
             setNewRide(null);
             setRideStatus(RideStatus.ACCEPTED);
+            toast.success("Ride accepted!");
         } catch (error) {
-            console.error('Error accepting ride:', error);
+            toast.error(
+              error.response?.data?.message ||
+                'Failed to accept the ride. Please try again.'
+            );
         }
     };
 
@@ -91,9 +96,27 @@ function DriverHome() {
         );
         setCurrentRide(response.data.data);
         setRideStatus(RideStatus.ONGOING);
+        toast.success("Ride started!");
       }catch(error){
-        console.error('Error starting ride:', error
-        )
+        toast.error(
+          error.response?.data?.message ||
+            'Failed to start the ride. Please try again.'
+        );
+      }
+    }
+    const handleArrived=async()=>{
+      try{
+        const response=await api.patch(
+          `/rides/${currentRide._id}/arrive`
+        );
+        setCurrentRide(response.data.data);
+        setRideStatus(RideStatus.ARRIVED);
+        toast.success("Arrived at pickup location!");
+      }catch(error){
+        toast.error(
+          error.response?.data?.message ||
+            'Failed to mark arrival. Please try again.'
+        );
       }
     }
     const handleCompleteRide=async()=>{
@@ -103,9 +126,10 @@ function DriverHome() {
         );
         setCurrentRide(response.data.data);
         setRideStatus(RideStatus.COMPLETED);
+        toast.success("Ride completed successfully!");
       }
       catch(error){
-        console.error('Error completing ride:', error);
+        toast.error('Error completing ride: ' + (error.response?.data?.message || error.message));
       }
     }
     const restDriverState=()=>{
@@ -129,16 +153,19 @@ function DriverHome() {
                     onReject={() => setNewRide(null)}
                 />
             )}
+            
             {rideStatus === RideStatus.ACCEPTED && (
                 <AcceptedRidePanel
                     ride={currentRide}
-                    onArrived={() => setRideStatus(RideStatus.ARRIVED)}
+                    onArrived={handleArrived}
                 />
+
             )}
+
             {rideStatus === RideStatus.ARRIVED && (
-                 <OTPPanel
-        ride={currentRide}
-        onStart={handleStartRide}
+                <OTPPanel
+                    ride={currentRide}
+                    onStart={handleStartRide}
     />
             )}
             {rideStatus === RideStatus.ONGOING && (

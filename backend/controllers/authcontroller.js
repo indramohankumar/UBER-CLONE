@@ -1,8 +1,6 @@
 const User = require("../models/usermodel");
 
 
-// Register User
-
 const registerUser = async (req, res) => {
     try {
         const { fullname, email, password, role } = req.body;
@@ -114,10 +112,6 @@ const loginUser = async (req, res) => {
         });
     }
 };
-
-// ==========================
-// Get Profile
-// ==========================
 const getProfile = async (req, res) => {
     try {
         // req.user is set by the authMiddleware

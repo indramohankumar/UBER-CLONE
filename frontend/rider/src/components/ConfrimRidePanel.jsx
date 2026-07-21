@@ -11,7 +11,7 @@ function ConfirmRidePanel({ vehicle, pickup, destination, fareData, onBack, onCo
                     </svg>
                 </button>
                 <h3 className="text-2xl font-bold">Confirm your Ride</h3>
-                <div className="w-10"></div> {/* Spacer for centering */}
+                <div className="w-10"></div> 
             </div>
 
             <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100">
@@ -57,8 +57,6 @@ function ConfirmRidePanel({ vehicle, pickup, destination, fareData, onBack, onCo
                     <h4 className="font-semibold text-gray-800">Cash Payment</h4>
                 </div>
             </div>
-
-            {/* Action Button */}
             <button 
                 onClick={onConfirm}
                 className="w-full bg-black text-white font-bold text-lg py-4 rounded-xl mt-4 hover:bg-gray-800 transition active:scale-[0.98] shadow-lg shadow-gray-300"
