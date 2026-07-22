@@ -9,6 +9,17 @@ import LiveMap from '../components/LiveMap';
 import socket from '../services/socket';
 import { AuthContext } from './../context/AuthContext';
 import { toast } from 'react-hot-toast';
+
+const RidePhase ={
+    IDLE: 'idle',
+    SEARCHING: 'searching',
+    CONFIRMING: 'confirming',
+    WAITING: 'waiting',
+    ACCEPTED: 'accepted',
+    ARRIVED: 'arrived',
+    ONGOING: 'ongoing',
+    COMPLETED: 'completed',
+};
 function Home() {
     const { user } = useContext(AuthContext);
     useEffect(() => {
@@ -34,7 +45,7 @@ function Home() {
         socket.on("ride-accepted", (ride) => {
             console.log("Ride accepted:", ride);
             setCurrentRide(ride);
-            setWaitingForDriver(false);
+            setRidePhase(RidePhase.ACCEPTED);
         });
         return () => {
             socket.off("ride-accepted");
@@ -55,6 +66,7 @@ function Home() {
         socket.on("ride-completed", (ride) => {
             console.log("Ride completed:", ride);
             setCurrentRide(ride);
+            setRidePhase(RidePhase.COMPLETED);
         });
         return () => {
             socket.off("ride-completed");
@@ -64,6 +76,8 @@ function Home() {
         socket.on("driver-arrived", (ride) => {
             console.log("Driver has arrived at pickup location:", ride);
             setCurrentRide(ride);
+            setRidePhase(RidePhase.ARRIVED);
+            toast.success("Your driver has arrived!");
         });
         return () => {
             socket.off("driver-arrived");
@@ -73,6 +87,8 @@ function Home() {
         socket.on("ride-started", (ride) => {
             console.log("Ride has started:", ride);
             setCurrentRide(ride);
+            setRidePhase(RidePhase.ONGOING);
+            toast.success("Your ride has started!");
         });
         return () => {
             socket.off("ride-started");
@@ -83,13 +99,11 @@ function Home() {
     const [panelOpen, setPanelOpen] = useState(false);
  const [suggestedLocations, setSuggestedLocations] =useState([]);
     const [activeInput, setActiveInput] = useState('');
- const [vehiclePanelOpen, setVehiclePanelOpen]=useState(false);
     const [fareData, setFareData] = useState(null);
     const [loading, setLoading] = useState(false);
-    const [confirmRidePanelOpen, setConfirmRidePanelOpen]= useState(false);
     const [selectedVehicle, setSelectedVehicle]= useState(null);
-const [currentRide, setCurrentRide] = useState(null);
-const[waitingForDriver, setWaitingForDriver] = useState(false);
+    const [currentRide, setCurrentRide] = useState(null);
+    const [ridePhase, setRidePhase] = useState(RidePhase.IDLE);
 
 const handleConfirmRide =async () => {
     try {
@@ -105,14 +119,8 @@ const handleConfirmRide =async () => {
                 }
             }
         );
-
         setCurrentRide(data.data);
-
-        setConfirmRidePanelOpen(false);
-
-        setWaitingForDriver(true);
-
-
+        setRidePhase(RidePhase.WAITING);
     } catch (error) {
         console.error(error);
         toast.error("Failed to create ride: " + (error.response?.data?.message || error.message));
@@ -120,8 +128,7 @@ const handleConfirmRide =async () => {
 };
     const handleVehicleSelect = (vehicle) => {
         setSelectedVehicle(vehicle);
-        setVehiclePanelOpen(false);
-        setConfirmRidePanelOpen(true);
+        setRidePhase(RidePhase.CONFIRMING);
     };
 
     const handleLocationSelect = (location) => {
@@ -150,7 +157,7 @@ const handleConfirmRide =async () => {
                 }
             );
             setFareData(data.data);
-            setVehiclePanelOpen(true);
+            setRidePhase(RidePhase.SEARCHING);
             setLoading(false);
         } catch (error) {
             console.error("Error fetching fare:", error);
@@ -200,7 +207,7 @@ const handleConfirmRide =async () => {
                 }`}
             >
 
-                {!vehiclePanelOpen && !confirmRidePanelOpen && !waitingForDriver && (!currentRide || currentRide.status !== "accepted") && (
+                {ridePhase === RidePhase.IDLE && (
                     <>
                         <h2 className="text-2xl font-semibold">Where to?</h2>
 
@@ -212,7 +219,6 @@ const handleConfirmRide =async () => {
                                 onChange={(e) => setPickup(e.target.value)}
                                 onFocus={() => {
                                     setPanelOpen(true);
-                                    setVehiclePanelOpen(false);
                                     setActiveInput('pickup');
                                 }}
                                 className="w-full bg-gray-100 rounded-lg px-4 py-3"
@@ -227,7 +233,6 @@ const handleConfirmRide =async () => {
                                 onChange={(e) => setDestination(e.target.value)}
                                 onFocus={() => {
                                     setPanelOpen(true);
-                                    setVehiclePanelOpen(false);
                                     setActiveInput('destination');
                                 }}
                                 className="w-full bg-gray-100 rounded-lg px-4 py-3"
@@ -244,7 +249,7 @@ const handleConfirmRide =async () => {
                     </>
                 )}
 
-                {panelOpen && (
+                {panelOpen && ridePhase === RidePhase.IDLE && (
                     <LocationSearchPanel
                         suggestedLocations={suggestedLocations}
                         activeInput={activeInput}
@@ -252,30 +257,71 @@ const handleConfirmRide =async () => {
                     />
                 )}
 
-                {vehiclePanelOpen && fareData && (
+                {ridePhase === RidePhase.SEARCHING && fareData && (
                     <VehiclePanel fareData={fareData}
                     onVehicleSelect={handleVehicleSelect} />
                 )}
 
-                {confirmRidePanelOpen && selectedVehicle && (
+                {ridePhase === RidePhase.CONFIRMING && selectedVehicle && (
                     <ConfrimRidePanel 
                         vehicle={selectedVehicle} 
                         pickup={pickup} 
                         destination={destination}
                         fareData={fareData}
-                        onBack={() => {
-                            setConfirmRidePanelOpen(false);
-                            setVehiclePanelOpen(true);
-                        }}
+                        onBack={() => setRidePhase(RidePhase.SEARCHING)}
                         onConfirm={handleConfirmRide}
                     />
                 )}
-                {waitingForDriver && (
+
+                {ridePhase === RidePhase.WAITING && (
                     <WaitingForDriverPanel ride={currentRide} />
                 )}
 
-                {!waitingForDriver && currentRide && currentRide.status === "accepted" && (
+                {ridePhase === RidePhase.ACCEPTED && currentRide && (
                     <DriverDetailsPanel ride={currentRide} />
+                )}
+
+                {ridePhase === RidePhase.ARRIVED && (
+                    <div className="text-center py-6">
+                        <div className="text-4xl mb-3">📍</div>
+                        <h3 className="text-xl font-bold">Driver has arrived!</h3>
+                        <p className="text-gray-500 mt-2">Meet your driver at the pickup point</p>
+                        <p className="text-gray-400 text-sm mt-1">Share your OTP with the driver to start the ride</p>
+                    </div>
+                )}
+
+                {ridePhase === RidePhase.ONGOING && (
+                    <div className="text-center py-6">
+                        <div className="text-4xl mb-3">🚗</div>
+                        <h3 className="text-xl font-bold">Ride in progress</h3>
+                        <p className="text-gray-500 mt-2">Sit back and enjoy your ride</p>
+                        {currentRide && (
+                            <p className="text-gray-400 text-sm mt-1">Heading to: {currentRide.destination}</p>
+                        )}
+                    </div>
+                )}
+
+                {ridePhase === RidePhase.COMPLETED && (
+                    <div className="text-center py-6">
+                        <div className="text-4xl mb-3">✅</div>
+                        <h3 className="text-xl font-bold">Ride Completed!</h3>
+                        {currentRide && (
+                            <p className="text-2xl font-black mt-2">₹{currentRide.fare}</p>
+                        )}
+                        <button
+                            onClick={() => {
+                                setCurrentRide(null);
+                                setRidePhase(RidePhase.IDLE);
+                                setPickup('');
+                                setDestination('');
+                                setFareData(null);
+                                setSelectedVehicle(null);
+                            }}
+                            className="w-full bg-black text-white rounded-lg py-3 mt-6 font-semibold hover:bg-gray-900 transition"
+                        >
+                            Book Another Ride
+                        </button>
+                    </div>
                 )}
                 
             </div>
