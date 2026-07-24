@@ -44,7 +44,7 @@ function Home() {
     useEffect(() => {
         socket.on("ride-accepted", (ride) => {
             console.log("Ride accepted:", ride);
-            setCurrentRide(ride);
+            setCurrentRide(prev => ({ ...prev, ...ride }));
             setRidePhase(RidePhase.ACCEPTED);
         });
         return () => {
@@ -65,7 +65,7 @@ function Home() {
     useEffect(() => {
         socket.on("ride-completed", (ride) => {
             console.log("Ride completed:", ride);
-            setCurrentRide(ride);
+            setCurrentRide(prev => ({ ...prev, ...ride }));
             setRidePhase(RidePhase.COMPLETED);
         });
         return () => {
@@ -75,7 +75,7 @@ function Home() {
     useEffect(() => {
         socket.on("driver-arrived", (ride) => {
             console.log("Driver has arrived at pickup location:", ride);
-            setCurrentRide(ride);
+            setCurrentRide(prev => ({ ...prev, ...ride }));
             setRidePhase(RidePhase.ARRIVED);
             toast.success("Your driver has arrived!");
         });
@@ -83,15 +83,26 @@ function Home() {
             socket.off("driver-arrived");
         };
     }, []);
-    useEffect(() => {
+    useEffect(()=> {
         socket.on("ride-started", (ride) => {
             console.log("Ride has started:", ride);
-            setCurrentRide(ride);
+            setCurrentRide(prev => ({ ...prev, ...ride }));
             setRidePhase(RidePhase.ONGOING);
             toast.success("Your ride has started!");
         });
-        return () => {
+        return ()=> {
             socket.off("ride-started");
+        };
+    }, []);
+    useEffect(()=> {
+        socket.on("ride-cancelled", (ride) => {
+            console.log("Ride has been cancelled:", ride);
+            setCurrentRide(null);
+            setRidePhase(RidePhase.IDLE);
+            toast.error("Your ride has been cancelled.");
+        });
+        return ()=> {
+            socket.off("ride-cancelled");
         };
     }, []);
  const [pickup, setPickup] =useState('');
@@ -184,6 +195,7 @@ const handleConfirmRide =async () => {
                 console.error("Error fetching suggested locations:", error);
     }
         };
+        
 
         const timerId = setTimeout(() => {
             fetchSuggestedLocations();
@@ -191,6 +203,29 @@ const handleConfirmRide =async () => {
 
         return () => clearTimeout(timerId);
     }, [pickup, destination, activeInput]);
+    const handleCancelRide= async () => {
+        try {
+            await api.patch(
+                `/rides/${currentRide._id}/cancel`,
+                {},
+                {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem('token')}`
+                    }
+                }
+            );
+            setCurrentRide(null);
+            setRidePhase(RidePhase.IDLE);
+            setPickup('');
+            setDestination('');
+            setFareData(null);
+            setSelectedVehicle(null);
+            toast.success("Ride cancelled successfully");
+        } catch (error) {
+            console.error("Error cancelling ride:", error);
+            toast.error(error.response?.data?.message || "Could not cancel ride. Please try again.");
+        }
+    };
 
     return (
         <div className="h-screen relative overflow-hidden">
@@ -274,11 +309,11 @@ const handleConfirmRide =async () => {
                 )}
 
                 {ridePhase === RidePhase.WAITING && (
-                    <WaitingForDriverPanel ride={currentRide} />
+                    <WaitingForDriverPanel ride={currentRide} onCancel={handleCancelRide} />
                 )}
 
                 {ridePhase === RidePhase.ACCEPTED && currentRide && (
-                    <DriverDetailsPanel ride={currentRide} />
+                    <DriverDetailsPanel ride={currentRide} onCancel={handleCancelRide} />
                 )}
 
                 {ridePhase === RidePhase.ARRIVED && (
@@ -286,7 +321,15 @@ const handleConfirmRide =async () => {
                         <div className="text-4xl mb-3">📍</div>
                         <h3 className="text-xl font-bold">Driver has arrived!</h3>
                         <p className="text-gray-500 mt-2">Meet your driver at the pickup point</p>
-                        <p className="text-gray-400 text-sm mt-1">Share your OTP with the driver to start the ride</p>
+                        <p className="text-gray-400 text-sm mt-1">Share this OTP with the driver to start the ride:</p>
+                        {currentRide && (
+                            <div className="mt-4 text-4xl font-black tracking-widest text-green-600 bg-green-50 py-3 rounded-xl border border-green-200">
+                                {currentRide.otp}
+                            </div>
+                        )}
+                        <button onClick={handleCancelRide} className="w-full bg-red-100 text-red-600 rounded-lg py-3 font-semibold hover:bg-red-200 transition mt-6">
+                            Cancel Ride
+                        </button>
                     </div>
                 )}
 

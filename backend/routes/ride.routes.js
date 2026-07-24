@@ -5,7 +5,7 @@ const authMiddleware = require("../middlewares/auth.middleware");
 const driverAuthMiddleware = require("../middlewares/driverauthmiddleware");
 
 const rideController = require("../controllers/ride.controller");
-
+const eitherAuthMiddleware = require("../middlewares/eitherAuthMiddleware");
 router.post(
     "/create",
     authMiddleware,
@@ -43,5 +43,10 @@ router.patch(
     driverAuthMiddleware,
     rideController.arriveAtPickup
 );
+router.patch(
+    '/:rideId/cancel',
+    eitherAuthMiddleware,
+    rideController.cancelRide
+)
 
 module.exports = router;

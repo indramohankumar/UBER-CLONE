@@ -205,6 +205,66 @@ const arriveAtPickup=async(rideId,driverId)=>{
     }
     return ride;
 }
+const cancelRide=async(rideId,userId,driverId)=>{
+    if(!rideId){
+        throw new Error("Ride ID is required");
+    }
+    const ride=await Ride.findById(rideId);
+    if(!ride){
+        throw new Error("Ride not found");
+    }
+    if(ride.status=="completed"){
+        throw new Error("Cannot cancel a completed ride");
+    }
+    if(ride.status=="cancelled"){
+        throw new Error("Ride is already cancelled");
+    }
+    if(ride.status=="ongoing"){
+        throw new Error("Cannot cancel an ongoing ride");
+    }
+    let cancelledBy="";
+    if(userId){
+        if(!ride.rider.equals(userId)){
+            throw new Error("You are not authorized to cancel this ride");
+        }
+        cancelledBy="rider";
+    }
+    else if(driverId){
+        if(!ride.driver.equals(driverId)){
+            throw new Error("You are not authorized to cancel this ride");
+        }
+        cancelledBy="driver";
+    }
+    else{
+        throw new Error("Unauthorized cancellation attempt");
+    }
+    ride.status="cancelled";
+    await ride.save();
+    const io=getIO();
+    const riderSocketId=getSocketId(
+        ride.rider.toString(),"user"
+    );
+    if(riderSocketId){
+        io.to(riderSocketId).emit("ride-cancelled",{
+            rideId:ride._id,
+            status:ride.status,
+            cancelledBy
+        })
+    }
+    if(ride.driver){
+        const driverSocketId=getSocketId(
+            ride.driver.toString(),"driver"
+        );
+        if(driverSocketId){
+            io.to(driverSocketId).emit("ride-cancelled",{
+                rideId:ride._id,
+                status:ride.status,
+                cancelledBy
+            })
+        }
+    }
+    return ride;
+}
 
 
 module.exports={
@@ -214,5 +274,6 @@ module.exports={
     startRide,
     completeRide,
     getFareEstimate,
-    arriveAtPickup
+    arriveAtPickup,
+    cancelRide
 }

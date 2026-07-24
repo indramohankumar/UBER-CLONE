@@ -138,6 +138,30 @@ function DriverHome() {
       setRideStatus(RideStatus.IDLE);
 
     };
+    const handleCancelRide = () => {
+        api.patch(`/rides/${currentRide._id}/cancel`, {}, {
+            headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        })
+        .then(() => {
+            toast.success("Ride cancelled successfully!");
+            restDriverState();
+        })
+        .catch((error) => {
+            toast.error('Error cancelling ride: ' + (error.response?.data?.message || error.message));
+        });
+    };
+
+    useEffect(() => {
+        const handleSocketCancel = () => {
+            toast.error("The rider cancelled the ride.");
+            restDriverState();
+        };
+
+        socket.on("ride-cancelled", handleSocketCancel);
+        return () => {
+            socket.off("ride-cancelled", handleSocketCancel);
+        };
+    }, []);
 
     return (
         <div className="h-screen bg-white relative">
@@ -155,9 +179,10 @@ function DriverHome() {
             )}
             
             {rideStatus === RideStatus.ACCEPTED && (
-                <AcceptedRidePanel
+                <AcceptedRidePanel 
                     ride={currentRide}
                     onArrived={handleArrived}
+                    onCancel={handleCancelRide}
                 />
 
             )}
@@ -180,6 +205,7 @@ function DriverHome() {
                     onFinish={restDriverState}
                 />
             )}
+
 
         </div>
     );

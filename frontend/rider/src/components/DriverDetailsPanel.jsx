@@ -1,6 +1,6 @@
 import React from 'react';
 
-function DriverDetailsPanel({ ride }) {
+function DriverDetailsPanel({ ride, onCancel }) {
     if (!ride || !ride.driver) return null;
 
     const { driver, otp } = ride;
@@ -37,7 +37,7 @@ function DriverDetailsPanel({ ride }) {
             <button className="w-full bg-black text-white rounded-lg py-3 font-semibold hover:bg-gray-900 transition mb-2">
                 Contact Driver
             </button>
-            <button className="w-full bg-red-100 text-red-600 rounded-lg py-3 font-semibold hover:bg-red-200 transition">
+            <button onClick={onCancel} className="w-full bg-red-100 text-red-600 rounded-lg py-3 font-semibold hover:bg-red-200 transition">
                 Cancel Ride
             </button>
         </div>

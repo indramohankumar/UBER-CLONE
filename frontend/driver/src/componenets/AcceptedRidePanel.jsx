@@ -1,6 +1,6 @@
 import React from 'react';
 
-function AcceptedRidePanel({ ride, onArrived }) {
+function AcceptedRidePanel({ ride, onArrived, onCancel }) {
     if (!ride) return null;
 
     return (
@@ -39,11 +39,16 @@ function AcceptedRidePanel({ ride, onArrived }) {
             </div>
             <button
                 onClick={onArrived}
-                className="w-full bg-black text-white font-semibold py-4 rounded-xl hover:bg-gray-900 transition active:scale-95"
+                className="w-full bg-black text-white font-semibold py-4 rounded-xl hover:bg-gray-900 transition active:scale-95 mb-3"
             >
                 I've Arrived at Pickup
             </button>
-
+            <button
+                onClick={onCancel}
+                className="w-full bg-red-100 text-red-600 font-semibold py-4 rounded-xl hover:bg-red-200 transition active:scale-95"
+            >
+                Cancel Ride
+            </button>
         </div>
     );
 }

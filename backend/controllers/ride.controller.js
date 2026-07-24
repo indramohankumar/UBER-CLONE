@@ -137,6 +137,25 @@ rideId,driverId);
         });
     }
 }
+const cancelRide=async(req,res)=>{
+    try{
+        const {rideId}=req.params;
+        const userId=req.user?._id;
+        const driverId=req.driver?._id;
+        const ride=await rideService.cancelRide(rideId,userId,driverId);
+        res.status(200).json({
+            success:true,
+            message:"Ride cancelled successfully",
+            data:ride
+        });
+    }
+    catch(error){
+        res.status(500).json({
+            success:false,
+            message:error.message
+        });
+    }
+}
 
     module.exports={
         createRide,
@@ -145,5 +164,6 @@ rideId,driverId);
         startRide,
         completeRide,
         getFareEstimate,
-        arriveAtPickup
+        arriveAtPickup,
+        cancelRide
 };
