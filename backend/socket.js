@@ -1,9 +1,8 @@
 const {Server} = require('socket.io');
 const driverService=require('./services/driver.service');
 const Ride=require('./models/ridemodel');
+const redisClient=require('./config/redis');
 let io;
-const onlineDrivers=new Map();
-const onlineUsers=new Map();
 const initializeSocket=(server)=>{
 
     io=new Server(server,{
@@ -12,16 +11,16 @@ const initializeSocket=(server)=>{
         }
     });
     io.on("connection",(socket)=>{
-        socket.on("join",(data)=>{
+        socket.on("join",async(data)=>{
             const {id,role}=data;
              if(role==="driver"){
-                onlineDrivers.set(id,socket.id);
+                await redisClient.set(`driver:${id}`,socket.id);
                 socket.driverId=id;
                 console.log("Driver connected",id);
             }
             
             if(role==="user"){
-                onlineUsers.set(id,socket.id);
+            await redisClient.set(`user:${id}`,socket.id);
                 socket.userId=id;
                 console.log("User connected",id);
             }
@@ -47,7 +46,7 @@ const initializeSocket=(server)=>{
                 if(!ride){
                     return;
                 }
-                const riderSocketId=getSocketId(
+                const riderSocketId= await getSocketId(
                     ride.rider.toString(),
                     "user"
                 );
@@ -67,15 +66,15 @@ const initializeSocket=(server)=>{
       
 
      console.log("New client connected",socket.id);
-       socket.on("disconnect", () => {
+       socket.on("disconnect",async () => {
 
     if (socket.driverId) {
-        onlineDrivers.delete(socket.driverId);
+    await redisClient.del(`driver:${socket.driverId}`);
 
         console.log("Driver disconnected", socket.driverId);
     }
     if (socket.userId) {
-        onlineUsers.delete(socket.userId);
+        await redisClient.del(`user:${socket.userId}`);
         console.log("User disconnected", socket.userId);
     }
 
@@ -92,12 +91,12 @@ const getIO=()=>{
     return io;
 
 };
-const getSocketId=(id,role)=>{
+const getSocketId=async(id,role)=>{
     if(role==="driver"){
-        return onlineDrivers.get(id);
+return await redisClient.get(`driver:${id}`);
     }
     if(role==="user"){
-        return onlineUsers.get(id);
+        return await redisClient.get(`user:${id}`);
     }
     return null;
     

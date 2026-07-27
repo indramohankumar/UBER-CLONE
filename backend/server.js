@@ -11,7 +11,7 @@ initializeSocket(server);
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
+const redisClient = require('./config/redis');
 const authRoutes = require('./routes/auth.routes');
 const driverRoutes = require('./routes/driver.routes');
 const rideRoutes = require('./routes/ride.routes');

@@ -27,13 +27,15 @@ const createRide=async({
         pickupCoordinates.latitude,
         pickupCoordinates.longitude,
         50000000 // 50,000 km radius for development testing so any driver gets the request
+
     );
+       console.log("Nearby Drivers:", nearbyDrivers.map(d => d._id.toString()));
     console.log(">>> [createRide] Nearby drivers found:", nearbyDrivers.length);
      const rideData=newRide.toObject();
          delete rideData.otp;
        const io=getIO();
     for(const driver of nearbyDrivers){
-        const socketId = getSocketId(driver._id.toString(), "driver");
+        const socketId = await getSocketId(driver._id.toString(), "driver");
         console.log(`>>> [createRide] Driver ${driver._id} -> Socket ID: ${socketId}`);
         if(socketId){
             io.to(socketId).emit("new-ride",rideData);
@@ -72,7 +74,7 @@ const acceptRide = async (rideId, driverId) => {
         .select("+otp");
 
     const io = getIO();
-    const riderSocketId = getSocketId(populatedRide.rider._id.toString(), "user");
+    const riderSocketId = await getSocketId(populatedRide.rider._id.toString(), "user");
     
     if (riderSocketId) {
         io.to(riderSocketId).emit("ride-accepted", populatedRide);
@@ -101,8 +103,7 @@ const startRide=async(rideId,driverId,otp)=>{
     ride.status="ongoing";
     await ride.save();
     const io=getIO();
-    const riderSocketId=getSocketId
-    (ride.rider.toString(),"user");
+    const riderSocketId=await getSocketId(ride.rider.toString(),"user");
     if(riderSocketId){
         io.to(riderSocketId).emit("ride-started",{
             rideId:ride._id,
@@ -130,7 +131,7 @@ const completeRide=async(rideId,driverId)=>{
     ride.status="completed";
     await ride.save();
     const io=getIO();
-    const riderSocketId=getSocketId(ride.rider.toString(),"user");
+    const riderSocketId=await getSocketId(ride.rider.toString(),"user");
     if(riderSocketId){
         io.to(riderSocketId).emit("ride-completed",{
             rideId:ride._id,
@@ -196,7 +197,7 @@ const arriveAtPickup=async(rideId,driverId)=>{
     ride.status="arrived";
     await ride.save();
     const io=getIO();
-    const riderSocketId=getSocketId(ride.rider.toString(),"user");
+    const riderSocketId=await getSocketId(ride.rider.toString(),"user");
     if(riderSocketId){
         io.to(riderSocketId).emit("driver-arrived",{
             rideId:ride._id,
@@ -241,7 +242,7 @@ const cancelRide=async(rideId,userId,driverId)=>{
     ride.status="cancelled";
     await ride.save();
     const io=getIO();
-    const riderSocketId=getSocketId(
+    const riderSocketId=await getSocketId(
         ride.rider.toString(),"user"
     );
     if(riderSocketId){
@@ -252,7 +253,7 @@ const cancelRide=async(rideId,userId,driverId)=>{
         })
     }
     if(ride.driver){
-        const driverSocketId=getSocketId(
+        const driverSocketId=await getSocketId(
             ride.driver.toString(),"driver"
         );
         if(driverSocketId){

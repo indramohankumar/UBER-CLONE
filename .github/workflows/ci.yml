@@ -1,0 +1,46 @@
+name: Uber Clone CI
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: 📥 Checkout repository
+      uses: actions/checkout@v4
+
+    - name: ⚙️ Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20' # Use Node 20
+        cache: 'npm'
+        cache-dependency-path: |
+          backend/package-lock.json
+          frontend/rider/package-lock.json
+          frontend/driver/package-lock.json
+
+    - name: 🚀 Install Backend Dependencies
+      run: |
+        cd backend
+        npm install
+
+    - name: 🚗 Install Rider App Dependencies
+      run: |
+        cd frontend/rider
+        npm install
+
+    - name: 🚕 Install Driver App Dependencies
+      run: |
+        cd frontend/driver
+        npm install
+
+    # If you had automated tests (like Jest), you would run them here!
+    # - name: Run Backend Tests
+    #   run: |
+    #     cd backend
+    #     npm test
