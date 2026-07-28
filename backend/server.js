@@ -16,10 +16,12 @@ const authRoutes = require('./routes/auth.routes');
 const driverRoutes = require('./routes/driver.routes');
 const rideRoutes = require('./routes/ride.routes');
 const mapRoutes = require('./routes/map.routes');
+const paymentRoutes = require('./routes/payment.routes');
 app.use('/users', authRoutes);
 app.use('/drivers', driverRoutes);
 app.use('/rides', rideRoutes);
 app.use('/maps', mapRoutes);
+app.use('/payments', paymentRoutes);
 
 app.get('/', (req, res) => {
   res.send("Uber backend server is running");

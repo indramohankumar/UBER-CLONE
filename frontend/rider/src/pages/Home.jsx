@@ -18,6 +18,7 @@ const RidePhase ={
     ACCEPTED: 'accepted',
     ARRIVED: 'arrived',
     ONGOING: 'ongoing',
+
     COMPLETED: 'completed',
 };
 function Home() {
@@ -115,28 +116,79 @@ function Home() {
     const [selectedVehicle, setSelectedVehicle]= useState(null);
     const [currentRide, setCurrentRide] = useState(null);
     const [ridePhase, setRidePhase] = useState(RidePhase.IDLE);
-
-const handleConfirmRide =async () => {
-    try {
-        const { data } = await api.post(
-            "/rides/create",
-            {
-                pickupLocation: pickup,
-                dropoffLocation: destination
-            },
-            {
-                headers: {
-                    Authorization: `Bearer ${localStorage.getItem("token")}`
+    const handleConfirmRide = async () => {
+        try {
+            const { data: order } = await api.post(
+                "/payments/create-order",
+              {
+                    amount: selectedVehicle.fare
+           },
+                {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem("token")}`
+                    }
                 }
-            }
-        );
-        setCurrentRide(data.data);
-        setRidePhase(RidePhase.WAITING);
-    } catch (error) {
-        console.error(error);
-        toast.error("Failed to create ride: " + (error.response?.data?.message || error.message));
-    }
-};
+            );
+            const options = {
+                key: import.meta.env.VITE_RAZORPAY_KEY_ID,
+                amount: order.amount,
+                currency: order.currency,
+                name: "Uber Clone",
+                description: "Ride Payment",
+                order_id: order.id,
+                handler: async function (response) {
+                    try {
+                        await api.post(
+                            "/payments/verify",
+                            {
+              razorpay_order_id: response.razorpay_order_id,
+                          razorpay_payment_id: response.razorpay_payment_id,
+            razorpay_signature: response.razorpay_signature
+                           },
+                            {
+                                headers: {
+                                    Authorization: `Bearer ${localStorage.getItem("token")}`
+                                }
+                            }
+                        );
+
+                        const rideRes = await api.post(
+                            "/rides/create",
+                            {
+                                pickupLocation: pickup,
+                                dropoffLocation: destination,
+                                vehicleType: selectedVehicle.type || selectedVehicle.vehicleType
+                            },
+                            {
+                                headers: {
+                                    Authorization: `Bearer ${localStorage.getItem("token")}`
+                                }
+                            }
+                        );
+
+                        
+                        setCurrentRide(rideRes.data.data);
+                        setRidePhase(RidePhase.WAITING);
+                        toast.success("Payment Successful and Ride Created!");
+
+                    } catch (error) {
+                        console.error(error);
+                        toast.error(error.response?.data?.message || "Payment verification failed");
+                    }
+                },
+                theme: {
+                    color: "#000000"
+                }
+            };
+
+            const razorpay = new window.Razorpay(options);
+            razorpay.open();
+
+        } catch (error) {
+            console.error(error);
+            toast.error(error.response?.data?.message || "Failed to create payment order");
+        }
+    };
     const handleVehicleSelect = (vehicle) => {
         setSelectedVehicle(vehicle);
         setRidePhase(RidePhase.CONFIRMING);
