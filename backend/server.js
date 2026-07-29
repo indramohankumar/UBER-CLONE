@@ -9,6 +9,7 @@ const app=express();
 const server=http.createServer(app);
 initializeSocket(server);
 app.use(cors());
+app.use('/payments/webhook', express.raw({ type: 'application/json' }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 const redisClient = require('./config/redis');
@@ -21,6 +22,7 @@ app.use('/users', authRoutes);
 app.use('/drivers', driverRoutes);
 app.use('/rides', rideRoutes);
 app.use('/maps', mapRoutes);
+
 app.use('/payments', paymentRoutes);
 
 app.get('/', (req, res) => {

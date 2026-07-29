@@ -1,4 +1,5 @@
 const paymentService=require('../services/payment.service');
+
 const createOrder=async(req,res)=>{
     try{
         const {amount}=req.body;
@@ -49,7 +50,35 @@ razorpay_signature
         });
     }
     }
+    const handleWebhook=async(req,res)=>{
+        try {
+            const crypto = require("crypto");
+            const signature = req.headers["x-razorpay-signature"];
+        
+            const expectedSignature = crypto
+                .createHmac("sha256", process.env.RAZORPAY_WEBHOOK_SECRET)
+                .update(req.body)
+                .digest("hex");
+        
+            if (signature !== expectedSignature) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Invalid webhook signature"
+                });
+            }
+        
+            console.log("Webhook Verified!");
+        
+            res.status(200).json({
+                success: true
+            });
+        } catch (error) {
+            console.error("Webhook error:", error);
+            res.status(500).json({ success: false });
+        }
+    }
 module.exports={
     createOrder,
-    verifyPayment
+    verifyPayment,
+    handleWebhook
 }

@@ -178,11 +178,35 @@ function Home() {
                 },
                 theme: {
                     color: "#000000"
+                },
+            modal: {
+                ondismiss:function(){
+                    console.log("uber clone payment modal closed");
+                   toast.error("payment cancelled"); 
                 }
-            };
+            }
+        };
+    
 
-            const razorpay = new window.Razorpay(options);
-            razorpay.open();
+        const razorpay = new window.Razorpay(options);
+
+razorpay.on("payment.failed", function (response) {
+
+    console.error("Payment failed:", response.error);
+
+    toast.error("Payment failed. Please try again.");
+
+    console.log("Code:", response.error.code);
+    console.log("Description:", response.error.description);
+    console.log("Source:", response.error.source);
+    console.log("Step:", response.error.step);
+    console.log("Reason:", response.error.reason);
+    console.log("Order ID:", response.error.metadata.order_id);
+    console.log("Payment ID:", response.error.metadata.payment_id);
+
+});
+
+razorpay.open();
 
         } catch (error) {
             console.error(error);
