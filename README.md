@@ -2,7 +2,7 @@
 
 # 🚖 Uber Clone Architecture
 
-**A Production-Grade Ride Hailing Platform**
+**A Production-Inspired Ride Hailing Platform**
 
 [![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)](https://reactjs.org/)
 [![Node.js](https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)](https://nodejs.org/)
@@ -11,7 +11,7 @@
 [![Socket.io](https://img.shields.io/badge/Socket.io-010101?style=for-the-badge&logo=socketdotio&logoColor=white)](https://socket.io/)
 [![Docker](https://img.shields.io/badge/Docker-2CA5E0?style=for-the-badge&logo=docker&logoColor=white)](https://docker.com/)
 
-> A highly scalable, distributed ride-hailing application built with the **MERN Stack**, **Redis**, and **WebSockets**. Designed to simulate the real-time architectural complexity of modern ride-sharing platforms like Uber and Lyft.
+> Designed to explore scalable backend architecture, real-time communication, and modern software engineering practices using the **MERN Stack**, **Redis**, and **WebSockets**. Inspired by the architectural complexity of platforms like Uber.
 
 </div>
 
