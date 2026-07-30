@@ -1,288 +1,154 @@
-# 🚖 Uber Clone
+<div align="center">
 
-## Production-Inspired Ride Hailing Platform
+# 🚖 Uber Clone Architecture
 
-> A full-stack ride-hailing application built with the **MERN Stack**, inspired by the architecture of modern ride-sharing platforms. This project focuses on backend engineering, scalable architecture, secure authentication, ride lifecycle management, and clean software engineering practices rather than simply recreating Uber's user interface.
+**A Production-Grade Ride Hailing Platform**
 
----
+[![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)](https://reactjs.org/)
+[![Node.js](https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)](https://nodejs.org/)
+[![MongoDB](https://img.shields.io/badge/MongoDB-4EA94B?style=for-the-badge&logo=mongodb&logoColor=white)](https://mongodb.com/)
+[![Redis](https://img.shields.io/badge/Redis-DC382D?style=for-the-badge&logo=redis&logoColor=white)](https://redis.io/)
+[![Socket.io](https://img.shields.io/badge/Socket.io-010101?style=for-the-badge&logo=socketdotio&logoColor=white)](https://socket.io/)
+[![Docker](https://img.shields.io/badge/Docker-2CA5E0?style=for-the-badge&logo=docker&logoColor=white)](https://docker.com/)
 
-# 📖 About the Project
+> A highly scalable, distributed ride-hailing application built with the **MERN Stack**, **Redis**, and **WebSockets**. Designed to simulate the real-time architectural complexity of modern ride-sharing platforms like Uber and Lyft.
 
-This project aims to understand how production ride-hailing platforms are engineered.
-
-Instead of focusing only on frontend design, the emphasis is on building a modular backend that follows industry-standard architecture and software engineering principles.
-
-The application currently supports secure authentication for riders and captains, ride creation, dynamic fare calculation, OTP generation, protected APIs, and a service-layer architecture.
-
-As development continues, the project will evolve with caching, distributed messaging, and deployment technologies including **Redis**, **Apache Kafka**, and **Docker**.
-
----
-
-# 🎯 Project Objectives
-
-- Build scalable REST APIs
-- Implement secure authentication
-- Follow modular backend architecture
-- Learn production software engineering practices
-- Simulate real ride-booking workflow
-- Explore distributed system concepts
+</div>
 
 ---
 
-# ✨ Current Features
+## 📖 About the Project
 
-## 🔐 Authentication
-- User Registration & Login
-- Captain Registration & Login
-- JWT Authentication
-- Password Hashing using bcrypt
-- Protected Routes & Middleware
+This is not just another frontend UI clone. This project is a deep dive into **Backend Engineering, Distributed Systems, and Real-Time Event Driven Architecture**. 
 
-## 🚖 Ride Management
-- Create Ride API
-- Ride Validation
-- Secure OTP Generation
-- Pending Ride APIs
-- Ride Status Management
+The emphasis is on building a modular backend that follows strict industry-standard software engineering principles, handling everything from secure cryptographic payments to live geospatial indexing.
 
-## 🗺️ Maps & Navigation
-- OpenRouteService Integration
-- Real-time Address Autocomplete Suggestions
-- Distance & Duration Calculation
-- Dynamic Fare Calculation Engine
-
-## 📡 Real-Time Communication
-- Socket.IO Server Integration
-- Live Geolocation Streaming
-- Event-driven ride state updates
+### 🔥 Key Architectural Achievements
+- **Real-Time Geolocation Engine:** Utilizes **Redis Geospatial Indexing** (`GEOADD`, `GEORADIUS`) to store and query live driver coordinates with sub-millisecond latency.
+- **Bi-Directional Event Streaming:** Orchestrates real-time ride state synchronization across dual client apps (Rider & Driver) using **Socket.io**.
+- **Cryptographic Webhooks:** Integrated **Razorpay** payment gateway with HMAC SHA-256 webhook signature verification.
+- **Containerized Infrastructure:** Backend and Redis datastore are fully containerized using **Docker** and orchestrated via `docker-compose`.
+- **Dynamic Routing:** Integrated with **OpenRouteService** (OSRM) to calculate optimized routes, ETAs, and dynamic pricing based on distance/duration.
 
 ---
 
-# 🏗️ System Architecture
+## 🏗️ System Architecture
 
-```text
-                    React Frontend
-                          │
-                          │ REST API / WebSockets
-                          ▼
-                 Express.js Backend
-                          │
-      ┌───────────────────┼───────────────────┐
-      │                   │                   │
- Controllers          Middleware         Services
-      │                   │                   │
-      └───────────────────┼───────────────────┘
-                          │
-                       MongoDB
-```
-
-The backend follows a layered architecture where every component has a single responsibility.
-
----
-
-# 🧠 Backend Architecture
-
-| Layer | Responsibility |
-|--------|----------------|
-| Routes | Defines API endpoints |
-| Controllers | Receives requests and returns responses |
-| Services | Contains all business logic |
-| Middleware | Authentication & request validation |
-| Models | MongoDB schema definitions |
-| Database | Stores application data |
-
----
-
-# 🔐 Authentication Workflow
-
-```text
-User
-   │
-   ▼
-Register / Login
-   │
-   ▼
-Password Hashing (bcrypt)
-   │
-   ▼
-JWT Token Generated
-   │
-   ▼
-Client Stores Token
-   │
-   ▼
-Protected Routes
-   │
-   ▼
-Authentication Middleware
+```mermaid
+graph TD
+    A[Rider React App] <-->|REST / WebSockets| C(Express.js Backend)
+    B[Driver React App] <-->|REST / WebSockets| C
+    
+    C -->|CRUD Operations| D[(MongoDB Atlas)]
+    C -->|Live Geo-Queries| E[(Redis Datastore)]
+    C -->|Webhook Verification| F[Razorpay Gateway]
+    C -->|Routing & ETA| G[OpenRouteService]
 ```
 
 ---
 
-# 🚕 Ride Booking Workflow
+## ✨ Features
 
-```text
-Passenger
-     │
-     ▼
-Create Ride Request
-     │
-     ▼
-Validate Pickup & Destination
-     │
-     ▼
-Calculate Fare
-     │
-     ▼
-Generate Secure OTP
-     │
-     ▼
-Create Ride Document
-     │
-     ▼
-Store Ride in MongoDB
-     │
-     ▼
-Return Ride Details
+### 🔐 Security & Authentication
+- Secure **JWT-based** Authentication for Riders and Captains.
+- Password encryption via `bcrypt`.
+- Custom authentication middleware for protected API routes.
+
+### 🚖 Ride Lifecycle Management
+- **State Machine:** Robust ride status progression (`Requested` ➜ `Accepted` ➜ `Arrived` ➜ `Ongoing` ➜ `Completed`).
+- **Secure Boarding:** OTP generation and verification to ensure riders enter the correct vehicle.
+
+### 🗺️ Live Mapping & Fares
+- **Address Autocomplete:** Instant location searching.
+- **Dynamic Pricing Engine:** Calculates base fare, per-km, and per-minute costs in real-time.
+- **Polyline Rendering:** Draws accurate, road-mapped routes between pickup and destination.
+
+### 💳 Cryptographic Payment Workflow (Razorpay)
+```mermaid
+sequenceDiagram
+    participant User
+    participant Frontend
+    participant Backend
+    participant Razorpay
+
+    User->>Frontend: Clicks "Pay Now"
+    Frontend->>Backend: Request Order ID (/create-order)
+    Backend->>Razorpay: Generate Order
+    Razorpay-->>Backend: Return Order ID
+    Backend-->>Frontend: Send Order ID
+    Frontend->>Razorpay: Open Checkout Modal
+    User->>Razorpay: Enter Payment Details
+    Razorpay-->>Frontend: Payment Success (razorpay_payment_id)
+    Razorpay--)Backend: Async Webhook Ping (payment.captured)
+    Backend->>Backend: Verify HMAC SHA-256 Signature
+    Backend-->>Razorpay: 200 OK (Webhook Verified)
 ```
 
 ---
 
-# 🚖 Ride Lifecycle
-
-| Status | Description |
-|--------|-------------|
-| Requested | Ride has been created |
-| Accepted | Driver accepts the ride |
-| Arrived | Driver reaches pickup location |
-| Ongoing | Ride starts |
-| Completed | Ride successfully ends |
-| Cancelled | Ride cancelled |
-| Rejected | Ride rejected by driver |
-
----
-
-# 💻 Technology Stack
+## 💻 Complete Technology Stack
 
 | Category | Technology | Purpose |
 |-----------|------------|---------|
-| Frontend | React.js | User Interface |
-| Build Tool | Vite | Fast development |
-| Styling | Tailwind CSS | Responsive UI |
-| Backend | Node.js + Express.js | REST APIs |
-| Database | MongoDB | Persistent data storage |
-| ODM | Mongoose | MongoDB object modeling |
-| Authentication | JWT + bcrypt | Secure authentication |
-| Real-Time | Socket.IO | Bi-directional communication |
-| Geospatial | OpenRouteService | Routing and coordinates |
-| API Testing | Postman | Endpoint testing |
-| Version Control | Git & GitHub | Source control |
+| **Frontend** | React (Vite) + Tailwind CSS | Lightning fast, responsive dual user interfaces |
+| **Backend** | Node.js + Express.js | Highly concurrent REST API layer |
+| **Database** | MongoDB + Mongoose | Persistent storage for Users, Drivers, and Ride History |
+| **In-Memory Store** | Redis | Caching and lightning-fast Geospatial indexing |
+| **Real-Time** | Socket.IO | Live bi-directional communication between clients |
+| **Payments** | Razorpay | Production payment gateway + Webhooks |
+| **Geospatial** | OpenRouteService | Routing, Polylines, and Coordinates |
+| **DevOps** | Docker + Docker Compose | Containerized backend infrastructure |
 
 ---
 
-# 📂 Backend Structure
+## 🚀 Running the Project (Locally)
 
-| Folder | Responsibility |
-|---------|----------------|
-| config | Configuration files |
-| controllers | API controllers |
-| middleware | Authentication & validation |
-| models | Database schemas |
-| routes | API routes |
-| services | Business logic |
-| utils | Helper functions |
-| db | Database connection |
+### 1. Start the Backend Infrastructure (Docker)
+Ensure you have Docker Desktop running, then spin up the Node.js backend and Redis instance simultaneously:
+```bash
+cd backend
+docker-compose up --build
+```
+
+### 2. Start the Rider App
+```bash
+cd frontend/rider
+npm install
+npm run dev
+```
+
+### 3. Start the Driver App
+```bash
+cd frontend/driver
+npm install
+npm run dev
+```
 
 ---
 
-# 📊 Current Progress
+## 📊 Project Completion Status
 
 | Module | Status |
 |---------|--------|
-| User Authentication | ✅ Completed |
-| Captain Authentication | ✅ Completed |
-| JWT Authorization | ✅ Completed |
-| Middleware | ✅ Completed |
-| Database Models | ✅ Completed |
-| Ride Routing & APIs | ✅ Completed |
-| OpenRouteService Integration | ✅ Completed |
-| Dynamic Fare Calculation | ✅ Completed |
-| OTP Generation | ✅ Completed |
-| Modular Backend Architecture | ✅ Completed |
-| Socket.IO Live Streaming | ✅ Completed |
+| **Authentication & Middleware** | ✅ Completed |
+| **Database Modeling (MongoDB)** | ✅ Completed |
+| **OpenRouteService Routing** | ✅ Completed |
+| **Dynamic Fare Engine** | ✅ Completed |
+| **Socket.IO Live Streaming** | ✅ Completed |
+| **Redis Geospatial Indexing** | ✅ Completed |
+| **Razorpay Payments & Webhooks** | ✅ Completed |
+| **Docker Containerization** | ✅ Completed |
+| Apache Kafka (Event Queueing) | 🚧 Planned |
 
 ---
 
-# 🛣️ Project Roadmap
+## 👨‍💻 Developed By
 
-The following technologies and features will be integrated as the project continues to evolve.
+**Indra Mohan Kumar**  
+*Computer Science Engineering Student*  
+**Focus:** Backend Engineering • Distributed Systems • Data Structures & Algorithms
 
-## ⚡ Redis
-Redis will be integrated to improve performance by caching frequently changing data.
-Planned use cases include:
-- Active Driver Cache
-- Driver Availability
-- OTP Expiration
-- Nearby Driver Lookup
-
-## 📨 Apache Kafka
-Kafka will be explored to understand event-driven architecture.
-Possible integrations include:
-- Ride Events
-- Driver Assignment Events
-- Analytics Pipeline
-- Future Microservice Communication
-
-## 💳 Payments
-- Payment Gateway Integration
-- Ride Billing
-- Transaction History
-
-## ☁️ Deployment
-- Docker
-- CI/CD Pipeline
-- Cloud Deployment
-
----
-
-# 📚 Learning Outcomes
-
-| Concept | Status |
-|----------|--------|
-| REST APIs | ✅ |
-| JWT Authentication | ✅ |
-| MongoDB Modeling | ✅ |
-| Middleware | ✅ |
-| Service Layer Architecture | ✅ |
-| Modular Backend Design | ✅ |
-| Maps API Integration | ✅ |
-| Socket.IO | ✅ |
-| Redis Caching | 🚧 Planned |
-| Apache Kafka | 🚧 Planned |
-| Docker | 🚧 Planned |
-| CI/CD | 🚧 Planned |
-
----
-
-# 🤝 Contributing
-
-Contributions, suggestions, and feedback are always welcome.
-Feel free to fork the repository, open an issue, or submit a pull request.
-
----
-
-# ⭐ Support
-
-If you found this project helpful or interesting, consider giving it a **⭐ Star**.
-Your support motivates me to continue improving the project.
-
----
-
-# 👨‍💻 Developer
-
-## Indra Mohan Kumar
-**Computer Science Engineering Student**
-**MERN Stack • Backend Development • Data Structures & Algorithms • System Design**
-
----
-> **Currently under active development with the goal of evolving into a production-inspired ride-hailing platform featuring real-time communication, distributed messaging, caching, and scalable backend architecture.**
+<p align="center">
+  <br>
+  <i>If you found this architecture interesting or helpful, consider giving it a <b>⭐ Star</b>!</i>
+</p>
