@@ -11,7 +11,7 @@ import { AuthContext } from './../context/AuthContext';
 import { toast } from 'react-hot-toast';
 
 const RidePhase ={
-    IDLE: 'idle',
+    IDLE:'idle',
     SEARCHING: 'searching',
     CONFIRMING: 'confirming',
     WAITING: 'waiting',
@@ -346,7 +346,7 @@ razorpay.open();
                                     setPanelOpen(true);
                                     setActiveInput('destination');
                                 }}
-                                className="w-full bg-gray-100 rounded-lg px-4 py-3"
+                                className="w-full bg-gray-200 rounded-lg px-4 py-3"
                             />
                         </div>
 
